@@ -1,3 +1,5 @@
+-- Tendo em vista que os dados nessa tabela se tratam apenas sobre o usuário, dados que são totalmente dele, não há necessidade
+-- de separar informações como (e-mail, telefone, etc) em tabelas distintas.
 CREATE TABLE usuario 
 ( 
  id VARCHAR(5) PRIMARY KEY,  
@@ -338,139 +340,84 @@ CREATE TABLE log_usuario (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_usuario INT,
-    nm_usuario VARCHAR(100),
-    sobrenome VARCHAR(100),
-    email_usuario VARCHAR(100),
-    nr_tel_usuario VARCHAR(20),
-    dt_nasci_usuario DATE,
-    biografia VARCHAR(280),
-    sexo VARCHAR(20),
-    apelido VARCHAR(100),
-    senha_usuario VARCHAR(100)
+    id_usuario VARCHAR(5)
 );
-
 
 CREATE TABLE log_genero (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_genero INT,
-    nm_genero VARCHAR(100),
-    introducao VARCHAR(500),
-    desc_genero TEXT
+    id_genero VARCHAR(5)
 );
 
 CREATE TABLE log_obra (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_obra INT,
-    ano_inicio VARCHAR(4),
-    ano_final VARCHAR(4),
-    desc_obra TEXT,
-    nm_obra VARCHAR(100),
-    id_genero INT,
-    id_artista INT,
-    id_museu INT
+    id_obra VARCHAR(5)
 );
 
 CREATE TABLE log_museu (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_museu INT,
-    nm_museu VARCHAR(100),
-    desc_museu TEXT,
-    id_endereco INT,
-    dt_inauguracao DATE,
-    nr_tel_museu VARCHAR(20)
+    id_museu VARCHAR(5)
 );
 
 CREATE TABLE log_endereco (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_endereco INT,
-    rua VARCHAR(100),
-    cep VARCHAR(9),
-    num_museu VARCHAR(10),
-    cidade VARCHAR(50),
-    estado VARCHAR(2),
-    ponto_referencia VARCHAR(150)
+    id_endereco VARCHAR(5)
 );
 
 CREATE TABLE log_guia (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_guia INT,
-    titulo_guia VARCHAR(100),
-    desc_guia TEXT,
-    id_museu INT
+    id_guia VARCHAR(5)
 );
 
 CREATE TABLE log_artista (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_artista INT,
-    nm_artista VARCHAR(250),
-    dt_nasc_artista DATE,
-    dt_falecimento DATE,
-    local_nasc VARCHAR(150),
-    local_morte VARCHAR(150),
-    desc_artista TEXT
+    id_artista VARCHAR(5)
 );
 
 CREATE TABLE log_dia_funcionamento (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_dia_funcionamento INT,
-    hr_inicio VARCHAR(20),
-    hr_termino VARCHAR(20),
-    pr_dia_funcionamento FLOAT,
-    dia_semana VARCHAR(30),
-    id_museu INT
+    id_dia_funcionamento VARCHAR(5)
 );
 
 CREATE TABLE log_usuario_museu (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_usuario_museu INT,
-    id_museu INT,
-    id_usuario INT
+    id_usuario_museu VARCHAR(5)
 );
 
 CREATE TABLE log_obra_guia (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_obra_guia INT,
-    nr_ordem INT,
-    desc_localizacao VARCHAR(500),
-    id_guia INT,
-    id_obra INT
+    id_obra_guia VARCHAR(5)
 );
 
 CREATE TABLE log_artista_genero (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_artista_genero INT,
-    id_artista INT,
-    id_genero INT
+    id_artista_genero VARCHAR(5)
 );
 
 CREATE TABLE log_usuario_genero (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_usuario_genero INT,
-    id_usuario INT,
-    id_genero INT
+    id_usuario_genero VARCHAR(5)
 );
 
 
@@ -484,14 +431,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_usuario (operacao, data_operacao, id_usuario, nm_usuario, sobrenome, email_usuario, nr_tel_usuario, dt_nasci_usuario, biografia, sexo, apelido, senha_usuario)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.nm_usuario, NEW.sobrenome, NEW.email_usuario, NEW.nr_tel_usuario, NEW.dt_nasci_usuario, NEW.biografia, NEW.sexo, NEW.apelido, NEW.senha_usuario);
+        INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_usuario (operacao, data_operacao, id_usuario, nm_usuario, sobrenome, email_usuario, nr_tel_usuario, dt_nasci_usuario, biografia, sexo, apelido, senha_usuario)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.nm_usuario, NEW.sobrenome, NEW.email_usuario, NEW.nr_tel_usuario, NEW.dt_nasci_usuario, NEW.biografia, NEW.sexo, NEW.apelido, NEW.senha_usuario);
+        INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_usuario (operacao, data_operacao, id_usuario, nm_usuario, sobrenome, email_usuario, nr_tel_usuario, dt_nasci_usuario, biografia, sexo, apelido, senha_usuario)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.nm_usuario, OLD.sobrenome, OLD.email_usuario, OLD.nr_tel_usuario, OLD.dt_nasci_usuario, OLD.biografia, OLD.sexo, OLD.apelido, OLD.senha_usuario);
+        INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -510,14 +457,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_genero (operacao, data_operacao, id_genero, nm_genero, introducao, desc_genero)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.nm_genero, NEW.introducao, NEW.desc_genero);
+        INSERT INTO log_genero (operacao, data_operacao, id_genero)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_genero (operacao, data_operacao, id_genero, nm_genero, introducao, desc_genero)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.nm_genero, NEW.introducao, NEW.desc_genero);
+        INSERT INTO log_genero (operacao, data_operacao, id_genero)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_genero (operacao, data_operacao, id_genero, nm_genero, introducao, desc_genero)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.nm_genero, OLD.introducao, OLD.desc_genero);
+        INSERT INTO log_genero (operacao, data_operacao, id_genero)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -536,14 +483,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_obra (operacao, data_operacao, id_obra, ano_inicio, ano_final, desc_obra, nm_obra, id_genero, id_artista, id_museu)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.ano_inicio, NEW.ano_final, NEW.desc_obra, NEW.nm_obra, NEW.id_genero, NEW.id_artista, NEW.id_museu);
+        INSERT INTO log_obra (operacao, data_operacao, id_obra)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_obra (operacao, data_operacao, id_obra, ano_inicio, ano_final, desc_obra, nm_obra, id_genero, id_artista, id_museu)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.ano_inicio, NEW.ano_final, NEW.desc_obra, NEW.nm_obra, NEW.id_genero, NEW.id_artista, NEW.id_museu);
+        INSERT INTO log_obra (operacao, data_operacao, id_obra)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_obra (operacao, data_operacao, id_obra, ano_inicio, ano_final, desc_obra, nm_obra, id_genero, id_artista, id_museu)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.ano_inicio, OLD.ano_final, OLD.desc_obra, OLD.nm_obra, OLD.id_genero, OLD.id_artista, OLD.id_museu);
+        INSERT INTO log_obra (operacao, data_operacao, id_obra)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -562,14 +509,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_museu (operacao, data_operacao, id_museu, nm_museu, desc_museu, id_endereco, dt_inauguracao, nr_tel_museu)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.nm_museu, NEW.desc_museu, NEW.id_endereco, NEW.dt_inauguracao, NEW.nr_tel_museu);
+        INSERT INTO log_museu (operacao, data_operacao, id_museu)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_museu (operacao, data_operacao, id_museu, nm_museu, desc_museu, id_endereco, dt_inauguracao, nr_tel_museu)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.nm_museu, NEW.desc_museu, NEW.id_endereco, NEW.dt_inauguracao, NEW.nr_tel_museu);
+        INSERT INTO log_museu (operacao, data_operacao, id_museu)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_museu (operacao, data_operacao, id_museu, nm_museu, desc_museu, id_endereco, dt_inauguracao, nr_tel_museu)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.nm_museu, OLD.desc_museu, OLD.id_endereco, OLD.dt_inauguracao, OLD.nr_tel_museu);
+        INSERT INTO log_museu (operacao, data_operacao, id_museu)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -588,14 +535,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_endereco (operacao, data_operacao, id_endereco, rua, cep, num_museu, cidade, estado, ponto_referencia)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.rua, NEW.cep, NEW.num_museu, NEW.cidade, NEW.estado, NEW.ponto_referencia);
+        INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_endereco (operacao, data_operacao, id_endereco, rua, cep, num_museu, cidade, estado, ponto_referencia)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.rua, NEW.cep, NEW.num_museu, NEW.cidade, NEW.estado, NEW.ponto_referencia);
+        INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_endereco (operacao, data_operacao, id_endereco, rua, cep, num_museu, cidade, estado, ponto_referencia)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.rua, OLD.cep, OLD.num_museu, OLD.cidade, OLD.estado, OLD.ponto_referencia);
+        INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -614,14 +561,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_guia (operacao, data_operacao, id_guia, titulo_guia, desc_guia, id_museu)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.titulo_guia, NEW.desc_guia, NEW.id_museu);
+        INSERT INTO log_guia (operacao, data_operacao, id_guia)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_guia (operacao, data_operacao, id_guia, titulo_guia, desc_guia, id_museu)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.titulo_guia, NEW.desc_guia, NEW.id_museu);
+        INSERT INTO log_guia (operacao, data_operacao, id_guia)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_guia (operacao, data_operacao, id_guia, titulo_guia, desc_guia, id_museu)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.titulo_guia, OLD.desc_guia, OLD.id_museu);
+        INSERT INTO log_guia (operacao, data_operacao, id_guia)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -640,14 +587,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_artista (operacao, data_operacao, id_artista, nm_artista, dt_nasc_artista, dt_falecimento, local_nasc, local_morte, desc_artista)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.nm_artista, NEW.dt_nasc_artista, NEW.dt_falecimento, NEW.local_nasc, NEW.local_morte, NEW.desc_artista);
+        INSERT INTO log_artista (operacao, data_operacao, id_artista)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_artista (operacao, data_operacao, id_artista, nm_artista, dt_nasc_artista, dt_falecimento, local_nasc, local_morte, desc_artista)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.nm_artista, NEW.dt_nasc_artista, NEW.dt_falecimento, NEW.local_nasc, NEW.local_morte, NEW.desc_artista);
+        INSERT INTO log_artista (operacao, data_operacao, id_artista)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_artista (operacao, data_operacao, id_artista, nm_artista, dt_nasc_artista, dt_falecimento, local_nasc, local_morte, desc_artista)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.nm_artista, OLD.dt_nasc_artista, OLD.dt_falecimento, OLD.local_nasc, OLD.local_morte, OLD.desc_artista);
+        INSERT INTO log_artista (operacao, data_operacao, id_artista)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -666,14 +613,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento, hr_inicio, hr_termino, pr_dia_funcionamento, dia_semana, id_museu)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.hr_inicio, NEW.hr_termino, NEW.pr_dia_funcionamento, NEW.dia_semana, NEW.id_museu);
+        INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento, hr_inicio, hr_termino, pr_dia_funcionamento, dia_semana, id_museu)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.hr_inicio, NEW.hr_termino, NEW.pr_dia_funcionamento, NEW.dia_semana, NEW.id_museu);
+        INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento, hr_inicio, hr_termino, pr_dia_funcionamento, dia_semana, id_museu)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.hr_inicio, OLD.hr_termino, OLD.pr_dia_funcionamento, OLD.dia_semana, OLD.id_museu);
+        INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -692,14 +639,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu, id_museu, id_usuario)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.id_museu, NEW.id_usuario);
+        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu, id_museu, id_usuario)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.id_museu, NEW.id_usuario);
+        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu, id_museu, id_usuario)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.id_museu, OLD.id_usuario);
+        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -718,14 +665,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia, nr_ordem, desc_localizacao, id_guia, id_obra)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.nr_ordem, NEW.desc_localizacao, NEW.id_guia, NEW.id_obra);
+        INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia, nr_ordem, desc_localizacao, id_guia, id_obra)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.nr_ordem, NEW.desc_localizacao, NEW.id_guia, NEW.id_obra);
+        INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia, nr_ordem, desc_localizacao, id_guia, id_obra)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.nr_ordem, OLD.desc_localizacao, OLD.id_guia, OLD.id_obra);
+        INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -744,14 +691,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero, id_artista, id_genero)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.id_artista, NEW.id_genero);
+        INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero, id_artista, id_genero)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.id_artista, NEW.id_genero);
+        INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero, id_artista, id_genero)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.id_artista, OLD.id_genero);
+        INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -770,14 +717,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero, id_usuario, id_genero)
-        VALUES ('INSERT', NOW(), NEW.id, NEW.id_usuario, NEW.id_genero);
+        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
+        VALUES ('INSERT', NOW(), NEW.id);
     ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero, id_usuario, id_genero)
-        VALUES ('UPDATE', NOW(), NEW.id, NEW.id_usuario, NEW.id_genero);
+        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
+        VALUES ('UPDATE', NOW(), NEW.id);
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero, id_usuario, id_genero)
-        VALUES ('DELETE', NOW(), OLD.id, OLD.id_usuario, OLD.id_genero);
+        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
+        VALUES ('DELETE', NOW(), OLD.id);
     END IF;
     RETURN NEW;
 END;
@@ -789,7 +736,7 @@ FOR EACH ROW
 EXECUTE FUNCTION log_usuario_genero_operation();
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
--- Drops
+-- Drops Normais
 drop table artista cascade
 drop table artista_genero cascade
 drop table dia_funcionamento cascade
@@ -804,21 +751,52 @@ drop table usuario_genero cascade
 drop table usuario_museu cascade
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Drops Tabelas de Log
 
--- Selects
+drop table log_usuario cascade
+drop table log_genero cascade
+drop table log_obra cascade
+drop table log_museu cascade
+drop table log_endereco cascade
+drop table log_guia cascade
+drop table log_artista cascade
+drop table log_dia_funcionamento cascade
+drop table log_usuario_museu cascade
+drop table log_obra_guia cascade
+drop table log_artista_genero cascade
+drop table log_usuario_genero cascade
 
-select * from artista
-select * from artista_genero
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Selects Normais
+
+select * from artista -- não consigo apagar as info por constraint
+select * from artista_genero -- não consigo apagar as info por constraint
 select * from dia_funcionamento
-select * from genero
-select * from guia
-select * from endereco_museu
-select * from museu
+select * from genero -- não consigo apagar as info por constraint
+select * from guia -- não consigo apagar as info por constraint
+select * from endereco_museu -- não consigo apagar as info por constraint
+select * from museu -- não consigo apafar as info por constraint
 select * from obra
 select * from obra_guia
 select * from usuario
 select * from usuario_genero
 select * from usuario_museu
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 
+-- Selects Tabelas de Log
+												
+select * from log_usuario
+select * from log_genero
+select * from log_obra
+select * from log_museu
+select * from log_endereco
+select * from log_guia
+select * from log_artista
+select * from log_dia_funcionamento
+select * from log_usuario_museu
+select * from log_obra_guia
+select * from log_artista_genero
+select * from log_usuario_genero
 
