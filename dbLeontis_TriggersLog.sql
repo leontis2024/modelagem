@@ -853,13 +853,13 @@ drop table log_usuario_genero cascade
 
 -- Selects Normais
 
-select * from artista -- não consigo apagar as info por constraint
-select * from artista_genero -- não consigo apagar as info por constraint
+select * from artista 
+select * from artista_genero
 select * from dia_funcionamento
-select * from genero -- não consigo apagar as info por constraint
-select * from guia -- não consigo apagar as info por constraint
-select * from endereco_museu -- não consigo apagar as info por constraint
-select * from museu -- não consigo apafar as info por constraint
+select * from genero 
+select * from guia 
+select * from endereco_museu
+select * from museu 
 select * from obra
 select * from obra_guia
 select * from usuario
