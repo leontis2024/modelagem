@@ -1,5 +1,15 @@
+-- Criação do Banco/Normalização do Banco.
+--------------------------------------------------------------------------
+
+-- A tabela `usuario` armazena informações pessoais dos usuários. Vamos analisar a normalização:
+-- 1NF (Primeira Forma Normal): A tabela está na 1NF porque todas as colunas contêm valores atômicos, ou seja, cada coluna contém um único valor, sem listas ou grupos de valores. Por exemplo, o campo `nm_usuario` contém um único nome de usuário, sem qualquer repetição de dados ou divisão em múltiplas partes.
+-- 2NF (Segunda Forma Normal): A tabela está na 2NF porque todos os atributos não-chave dependem da chave primária `id`. Não há dependências parciais, o que significa que não existe uma combinação de colunas que poderia ser usada como chave primária para parte dos dados. Todos os campos, como `email_usuario` e `nr_tel_usuario`, dependem exclusivamente do `id` do usuário.
+-- 3NF (Terceira Forma Normal): A tabela está na 3NF porque não há dependências transitivas. Isso significa que cada atributo não-chave depende unicamente da chave primária e não de outros atributos não-chave. Por exemplo, o `email_usuario` depende diretamente do `id` e não de outra coluna, como `nm_usuario`. Essa estrutura minimiza a redundância e o risco de inconsistências nos dados.
+-- Justificativa: Manter todas as informações do usuário em uma única tabela faz sentido aqui porque cada atributo é exclusivo para o usuário e não se repete em outras entidades. Isso simplifica o design do banco de dados, facilita as consultas e garante que os dados pessoais do usuário estejam centralizados em um único lugar.
+
 -- Tendo em vista que os dados nessa tabela se tratam apenas sobre o usuário, dados que são totalmente dele, não há necessidade
 -- de separar informações como (e-mail, telefone, etc) em tabelas distintas.
+
 CREATE TABLE usuario 
 ( 
  id VARCHAR(5) PRIMARY KEY,  
@@ -14,6 +24,13 @@ CREATE TABLE usuario
  senha_usuario VARCHAR(100) constraint senha_usuario_nula not null  
 ); 
 
+--------------------------------------------------------------------------
+-- A tabela `genero` armazena informações sobre os diferentes gêneros artísticos. A normalização está detalhada abaixo:
+-- 1NF: A tabela atende à 1NF porque cada coluna contém valores atômicos. Não há repetição de grupos de valores, e cada coluna armazena um único tipo de informação. Por exemplo, `nm_genero` armazena apenas o nome do gênero, sem listas ou valores combinados.
+-- 2NF: A tabela está na 2NF porque todos os atributos dependem da chave primária `id`. Não há colunas que dependam de uma parte da chave primária, já que `id` é uma chave simples e todas as outras colunas são relacionadas diretamente a ela.
+-- 3NF: A tabela está na 3NF porque não há dependências transitivas. Isso significa que cada coluna não-chave, como `desc_genero`, depende apenas da chave primária e não de outras colunas na tabela. Por exemplo, `desc_genero` não depende de `nm_genero`, mas sim diretamente de `id`.
+-- Justificativa: A normalização desta tabela evita redundâncias e garante que cada gênero artístico seja representado de forma única e consistente. Isso facilita a manutenção dos dados e a realização de consultas eficientes e precisas.
+
 CREATE TABLE genero 
 ( 
  id VARCHAR(5) PRIMARY KEY,  
@@ -21,6 +38,14 @@ CREATE TABLE genero
  introducao VARCHAR(500),  
  desc_genero TEXT constraint ds_genero_nulo not null
 ); 
+
+--------------------------------------------------------------------------
+-- A tabela `obra` armazena informações sobre as obras de arte, incluindo suas associações com gêneros, artistas e museus.
+-- Normalização:
+-- 1NF: Todos os valores são atômicos e indivisíveis. As colunas como `nm_obra`, `ano_inicio`, e `ano_final` contêm informações únicas e específicas sobre cada obra.
+-- 2NF: Todos os atributos nesta tabela dependem totalmente da chave primária `id`, o que significa que não há dependências parciais. A obra é identificada exclusivamente por `id`, e atributos como `nm_obra` e `desc_obra` são diretamente dependentes dessa chave primária.
+-- 3NF: Não há dependências transitivas. Todas as colunas dependem diretamente da chave primária. As referências a `genero`, `artista` e `museu` são feitas por meio de chaves estrangeiras (`id_genero`, `id_artista`, `id_museu`), garantindo que essas associações sejam mantidas de forma clara e sem redundância.
+-- Justificativa: A tabela `obra` está organizada de forma que qualquer dado relacionado a uma obra (como seu gênero, artista e museu) seja referenciado externamente, evitando duplicação e assegurando que cada obra tenha uma única representação clara e direta.
 
 CREATE TABLE obra 
 ( 
@@ -34,6 +59,14 @@ CREATE TABLE obra
  id_museu VARCHAR(5)
 ); 
 
+--------------------------------------------------------------------------
+-- A tabela `endereco_museu` armazena informações de endereço dos museus.
+-- Normalização:
+-- 1NF: Todos os valores são atômicos e específicos, como `rua`, `cep`, `num_museu`, `cidade`, etc. Não há agrupamento de informações em uma única coluna.
+-- 2NF: Todos os atributos dependem exclusivamente da chave primária `id`, que identifica cada endereço de forma única. Por exemplo, `cep` e `rua` são específicos ao `id` do endereço.
+-- 3NF: Não há dependências transitivas entre as colunas. Cada coluna fornece informações diretas sobre o endereço identificado pela chave primária `id`.
+-- Justificativa: Ao separar o endereço do museu em uma tabela distinta, evitamos a duplicação de dados de endereço em outras tabelas, como `museu`. Isso melhora a integridade dos dados e facilita a manutenção, como atualizar um endereço sem afetar outras partes do banco de dados.
+
 CREATE TABLE endereco_museu (
     id VARCHAR(5) PRIMARY KEY,
     rua VARCHAR(100) NOT NULL,
@@ -44,6 +77,15 @@ CREATE TABLE endereco_museu (
     ponto_referencia VARCHAR(150)
 );
 
+--------------------------------------------------------------------------
+-- A tabela `museu` armazena informações sobre museus e faz referência ao endereço do museu.
+-- Normalização:
+-- 1NF: Todos os valores são atômicos. Colunas como `nm_museu` e `desc_museu` contêm informações indivisíveis sobre cada museu.
+-- 2NF: Todos os atributos dependem exclusivamente da chave primária `id`. A coluna `id_endereco` faz referência ao `id` da tabela `endereco_museu`, garantindo que cada museu esteja associado a um único endereço.
+-- 3NF: Não há dependências transitivas. A tabela armazena dados exclusivos do museu, como seu nome, descrição e número de telefone, enquanto a informação de endereço é mantida separada para evitar redundância.
+-- Justificativa: Ao utilizar uma chave estrangeira para o endereço (`id_endereco`), asseguramos que cada museu tenha um endereço único e correto, reduzindo a duplicação de dados e facilitando a integridade e consistência dos dados de endereço.
+
+
 CREATE TABLE museu (
     id VARCHAR(5) PRIMARY KEY,
     nm_museu VARCHAR(100) constraint nm_museu_nulo not null,
@@ -53,6 +95,14 @@ CREATE TABLE museu (
     nr_tel_museu VARCHAR(20)
 );
 
+--------------------------------------------------------------------------
+-- A tabela `guia` armazena informações sobre guias de museus e suas associações com os museus.
+-- Normalização:
+-- 1NF: Todos os valores são atômicos. A tabela contém informações específicas sobre cada guia, como `titulo_guia` e `desc_guia`.
+-- 2NF: Todos os atributos dependem completamente da chave primária `id`. A coluna `id_museu` indica a associação do guia com um museu específico.
+-- 3NF: Não há dependências transitivas. Cada coluna depende diretamente da chave primária `id`, e não há redundâncias de dados.
+-- Justificativa: A tabela está organizada de maneira que cada guia seja identificado de forma única e tenha uma associação clara e direta com um museu específico, facilitando a gestão e evitando duplicação de dados em outros contextos.
+
 CREATE TABLE guia 
 ( 
  id VARCHAR(5) PRIMARY KEY,  
@@ -61,6 +111,13 @@ CREATE TABLE guia
  id_museu VARCHAR(5)
 ); 
 
+--------------------------------------------------------------------------
+-- A tabela `artista` armazena informações sobre os artistas, incluindo detalhes sobre suas datas e locais de nascimento e morte.
+-- Normalização:
+-- 1NF: Cada valor na tabela é atômico, com colunas distintas para nome, datas e locais.
+-- 2NF: Todos os atributos dependem completamente da chave primária `id`, garantindo que não haja dependências parciais.
+-- 3NF: Não há dependências transitivas. Cada atributo depende diretamente da chave primária `id`, o que elimina redundâncias e mantém a integridade dos dados.
+-- Justificativa: A tabela `artista` é estruturada para armazenar informações específicas e únicas de cada artista, sem redundância e com uma clara distinção entre dados de identificação e detalhes adicionais, como biografia.
 
 CREATE TABLE artista 
 ( 
@@ -73,6 +130,14 @@ CREATE TABLE artista
  desc_artista TEXT  
 ); 
 
+--------------------------------------------------------------------------
+-- A tabela `dia_funcionamento` armazena informações sobre os dias e horários de funcionamento dos museus.
+-- Normalização:
+-- 1NF: Todos os valores são atômicos e específicos para cada dia de funcionamento.
+-- 2NF: Cada atributo, como `hr_inicio` e `dia_semana`, depende completamente da chave primária `id`.
+-- 3NF: Não há dependências transitivas. Cada coluna na tabela fornece informações diretamente relacionadas ao dia de funcionamento identificado pela chave primária.
+-- Justificativa: A tabela está estruturada para armazenar informações claras e únicas sobre os horários de funcionamento, associados a um museu específico por meio de `id_museu`. Isso evita duplicação de informações de horários e garante que cada dia de funcionamento esteja corretamente relacionado a um museu.
+
 CREATE TABLE dia_funcionamento 
 ( 
  id VARCHAR(5) PRIMARY KEY,
@@ -83,12 +148,21 @@ CREATE TABLE dia_funcionamento
  id_museu VARCHAR(5)
 ); 
 
+--------------------------------------------------------------------------
+-- Estas tabelas relacionais são utilizadas para modelar associações entre entidades (usuários, museus, guias, obras, artistas e gêneros).
+-- Normalização:
+-- 1NF: Todas as tabelas possuem valores atômicos e cada linha representa uma associação única entre duas entidades.
+-- 2NF: As colunas em cada tabela dependem totalmente das chaves primárias compostas, garantindo que cada relação seja única e bem definida.
+-- 3NF: Não há dependências transitivas, pois as tabelas não possuem atributos além das chaves estrangeiras. Cada chave estrangeira aponta para uma entidade específica, eliminando qualquer redundância.
+-- Justificativa: Ao usar tabelas de associação, como `usuario_museu` e `obra_guia`, garantimos que as relações entre diferentes entidades sejam gerenciadas de forma eficiente, sem duplicar dados em outras tabelas. Isso também facilita a expansão futura do banco de dados, caso novas associações precisem ser feitas.
+
 CREATE TABLE usuario_museu 
 (
  id VARCHAR(5) PRIMARY KEY,  
  id_museu VARCHAR(5),
  id_usuario VARCHAR(5)
-); 
+);
+-- A tabela usuario_museu corresponde a tabela onde será armazenado os dados quando um usuário seguir um determinado museu dentro do aplicativo. Para ver mais obras de desse museu.
 
 CREATE TABLE obra_guia 
 ( 
@@ -98,6 +172,8 @@ CREATE TABLE obra_guia
  id_guia VARCHAR(5),  
  id_obra VARCHAR(5)  
 ); 
+-- A tabela obra_guia estabelece a relação entre a tabela de obras e a de guia e possui novas informações para o guia. 
+-- O guia será um passo a passo para o usuário andar e ver obras pelo museu, sabendo onde ela se encontra, e com o campo nr_ordem na tabela obra_guia, poderemos saber qual order o usuário deve seguir.
 
 CREATE TABLE artista_genero 
 (
@@ -106,6 +182,8 @@ CREATE TABLE artista_genero
  id_genero VARCHAR(5) 
 ); 
 
+-- A tabela artista_genero corresponde a tabela onde será armazenado o genero da obra que determinado artista possui em suas obras.
+
 CREATE TABLE usuario_genero 
 ( 
  id VARCHAR(5) PRIMARY KEY,
@@ -113,7 +191,12 @@ CREATE TABLE usuario_genero
  id_genero VARCHAR(5)
 ); 
 
+-- -- A tabela usuario_genero corresponde a tabela onde será armazenado os dados de quando após o usuário se cadastrar, ele responde uma especie de pesquisa e escolhe os generos de arte que ele mais gosta. 
+-- Para que veja mais informações sobre esse genero.
 
+
+--------------------------------------------------------------------------
+-- Estabelecendo relações
 ALTER TABLE obra 
 ADD FOREIGN KEY(id_genero) 
 REFERENCES genero (id);
