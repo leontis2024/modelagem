@@ -12,7 +12,7 @@
 
 CREATE TABLE usuario 
 ( 
- id VARCHAR(5) PRIMARY KEY,  
+ id BIGINT PRIMARY KEY,  
  nm_usuario VARCHAR(100) constraint nm_usuario_nulo not null,  
  sobrenome VARCHAR(100) constraint sobrenome_nulo not null,  
  email_usuario VARCHAR(100) constraint email_usuario_nulo not null,   
@@ -21,7 +21,8 @@ CREATE TABLE usuario
  biografia VARCHAR(280) default 'Oi, eu estou usando o Leontis!',  
  sexo VARCHAR(20) constraint sexo_nulo not null,  
  apelido VARCHAR(100),  
- senha_usuario VARCHAR(100) constraint senha_usuario_nula not null  
+ senha_usuario VARCHAR(100) constraint senha_usuario_nula not null,
+ url_imagem VARCHAR(500) 
 ); 
 
 --------------------------------------------------------------------------
@@ -33,10 +34,11 @@ CREATE TABLE usuario
 
 CREATE TABLE genero 
 ( 
- id VARCHAR(5) PRIMARY KEY,  
+ id BIGINT PRIMARY KEY,  
  nm_genero VARCHAR(100) constraint nm_genero_nulo not null,  
  introducao VARCHAR(500),  
- desc_genero TEXT constraint ds_genero_nulo not null
+ desc_genero TEXT constraint ds_genero_nulo not null,
+ url_imagem VARCHAR(500) 
 ); 
 
 --------------------------------------------------------------------------
@@ -49,14 +51,15 @@ CREATE TABLE genero
 
 CREATE TABLE obra 
 ( 
- id VARCHAR(5) PRIMARY KEY,  
+ id BIGINT PRIMARY KEY,  
  ano_inicio VARCHAR(4),  
  ano_final VARCHAR(4),  
  desc_obra TEXT default 'Que obra linda! Não é mesmo?',  
  nm_obra VARCHAR(100) constraint nm_obra_nulo not null,  
- id_genero VARCHAR(5),  
- id_artista VARCHAR(5),  
- id_museu VARCHAR(5)
+ id_genero BIGINT,  
+ id_artista BIGINT,  
+ id_museu BIGINT,
+ url_imagem VARCHAR(500) 
 ); 
 
 --------------------------------------------------------------------------
@@ -68,7 +71,7 @@ CREATE TABLE obra
 -- Justificativa: Ao separar o endereço do museu em uma tabela distinta, evitamos a duplicação de dados de endereço em outras tabelas, como `museu`. Isso melhora a integridade dos dados e facilita a manutenção, como atualizar um endereço sem afetar outras partes do banco de dados.
 
 CREATE TABLE endereco_museu (
-    id VARCHAR(5) PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     rua VARCHAR(100) NOT NULL,
     cep VARCHAR(9) NOT NULL,
     num_museu VARCHAR(10) NOT NULL,
@@ -87,12 +90,13 @@ CREATE TABLE endereco_museu (
 
 
 CREATE TABLE museu (
-    id VARCHAR(5) PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     nm_museu VARCHAR(100) constraint nm_museu_nulo not null,
     desc_museu TEXT default 'Este museu passou por tanta coisa! Concorda?',
-    id_endereco VARCHAR(5) REFERENCES endereco_museu(id),  -- Chave estrangeira para a tabela endereco_museu
+    id_endereco BIGINT REFERENCES endereco_museu(id),  -- Chave estrangeira para a tabela endereco_museu
     dt_inauguracao DATE default current_date,
-    nr_tel_museu VARCHAR(20)
+    nr_tel_museu VARCHAR(20),
+	url_imagem VARCHAR(500) 
 );
 
 --------------------------------------------------------------------------
@@ -105,10 +109,11 @@ CREATE TABLE museu (
 
 CREATE TABLE guia 
 ( 
- id VARCHAR(5) PRIMARY KEY,  
+ id BIGINT PRIMARY KEY,  
  titulo_guia VARCHAR(100) constraint titulo_guia_nulo not null,  
  desc_guia TEXT default 'Este guia irá te guiar por esta sala!',  
- id_museu VARCHAR(5)
+ id_museu BIGINT,
+ url_imagem VARCHAR(500) 
 ); 
 
 --------------------------------------------------------------------------
@@ -121,13 +126,14 @@ CREATE TABLE guia
 
 CREATE TABLE artista 
 ( 
- id VARCHAR(5) PRIMARY KEY,
+ id BIGINT PRIMARY KEY,
  nm_artista VARCHAR(250),  
  dt_nasc_artista DATE,  
  dt_falecimento DATE,  
  local_nasc VARCHAR(150),  
  local_morte VARCHAR(150),  
- desc_artista TEXT  
+ desc_artista TEXT,
+ url_imagem VARCHAR(500) 
 ); 
 
 --------------------------------------------------------------------------
@@ -140,12 +146,12 @@ CREATE TABLE artista
 
 CREATE TABLE dia_funcionamento 
 ( 
- id VARCHAR(5) PRIMARY KEY,
+ id BIGINT PRIMARY KEY,
  hr_inicio VARCHAR(20),  
  hr_termino VARCHAR(20),  
  pr_dia_funcionamento FLOAT,  
  dia_semana VARCHAR(30),  
- id_museu VARCHAR(5)
+ id_museu BIGINT
 ); 
 
 --------------------------------------------------------------------------
@@ -158,37 +164,37 @@ CREATE TABLE dia_funcionamento
 
 CREATE TABLE usuario_museu 
 (
- id VARCHAR(5) PRIMARY KEY,  
- id_museu VARCHAR(5),
- id_usuario VARCHAR(5)
+ id BIGINT PRIMARY KEY,  
+ id_museu BIGINT,
+ id_usuario BIGINT
 );
 -- A tabela usuario_museu corresponde a tabela onde será armazenado os dados quando um usuário seguir um determinado museu dentro do aplicativo. Para ver mais obras de desse museu.
 
 CREATE TABLE obra_guia 
 ( 
- id VARCHAR(5) PRIMARY KEY,  
+ id BIGINT PRIMARY KEY,  
  nr_ordem INT, 
  desc_localizacao VARCHAR(500),
- id_guia VARCHAR(5),  
- id_obra VARCHAR(5)  
+ id_guia BIGINT,  
+ id_obra BIGINT  
 ); 
 -- A tabela obra_guia estabelece a relação entre a tabela de obras e a de guia e possui novas informações para o guia. 
 -- O guia será um passo a passo para o usuário andar e ver obras pelo museu, sabendo onde ela se encontra, e com o campo nr_ordem na tabela obra_guia, poderemos saber qual order o usuário deve seguir.
 
 CREATE TABLE artista_genero 
 (
- id VARCHAR(5) PRIMARY KEY,
- id_artista VARCHAR(5),  
- id_genero VARCHAR(5) 
+ id BIGINT PRIMARY KEY,
+ id_artista BIGINT,  
+ id_genero BIGINT 
 ); 
 
 -- A tabela artista_genero corresponde a tabela onde será armazenado o genero da obra que determinado artista possui em suas obras.
 
 CREATE TABLE usuario_genero 
 ( 
- id VARCHAR(5) PRIMARY KEY,
- id_usuario VARCHAR(5),  
- id_genero VARCHAR(5)
+ id BIGINT PRIMARY KEY,
+ id_usuario BIGINT,  
+ id_genero BIGINT
 ); 
 
 -- -- A tabela usuario_genero corresponde a tabela onde será armazenado os dados de quando após o usuário se cadastrar, ele responde uma especie de pesquisa e escolhe os generos de arte que ele mais gosta. 
@@ -423,96 +429,325 @@ CREATE TABLE log_usuario (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_usuario VARCHAR(5)
+    id_usuario BIGINT
 );
 
 CREATE TABLE log_genero (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_genero VARCHAR(5)
+    id_genero BIGINT
 );
 
 CREATE TABLE log_obra (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_obra VARCHAR(5)
+    id_obra BIGINT
 );
 
 CREATE TABLE log_museu (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_museu VARCHAR(5)
+    id_museu BIGINT
 );
 
 CREATE TABLE log_endereco (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_endereco VARCHAR(5)
+    id_endereco BIGINT
 );
 
 CREATE TABLE log_guia (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_guia VARCHAR(5)
+    id_guia BIGINT
 );
 
 CREATE TABLE log_artista (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_artista VARCHAR(5)
+    id_artista BIGINT
 );
 
 CREATE TABLE log_dia_funcionamento (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_dia_funcionamento VARCHAR(5)
+    id_dia_funcionamento BIGINT
 );
 
 CREATE TABLE log_usuario_museu (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_usuario_museu VARCHAR(5)
+    id_usuario_museu BIGINT
 );
 
 CREATE TABLE log_obra_guia (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_obra_guia VARCHAR(5)
+    id_obra_guia BIGINT
 );
 
 CREATE TABLE log_artista_genero (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_artista_genero VARCHAR(5)
+    id_artista_genero BIGINT
 );
 
 CREATE TABLE log_usuario_genero (
     id SERIAL PRIMARY KEY,
     operacao VARCHAR(50),
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    id_usuario_genero VARCHAR(5)
+    id_usuario_genero BIGINT
 );
 
+-- Tabela de log para ações (seguir e deixar de seguir) na tabela usuario_museu
+CREATE TABLE log_usuario_museu_acoes (
+    id SERIAL PRIMARY KEY,
+    id_usuario BIGINT,
+    id_museu BIGINT,
+    acao VARCHAR(50),
+    data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela de log para ações (acompanhar e deixar de acompanhar) na tabela usuario_genero
+CREATE TABLE log_usuario_genero_acoes (
+    id SERIAL PRIMARY KEY,
+    id_usuario BIGINT,
+    id_genero BIGINT,
+    acao VARCHAR(50),
+    data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE log_geral (
+    id SERIAL PRIMARY KEY,
+    tabela VARCHAR(50) NOT NULL,
+    id_registro BIGINT NOT NULL,
+    operacao VARCHAR(50) NOT NULL,
+    data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+---------------------------------------------------------------------------------- Criando Procedures ----------------------------------------------------------------------------------------
+															-- Procedure para inserção e verificação de informações de usuário --
+
+CREATE OR REPLACE PROCEDURE inserir_usuario(
+    p_id BIGINT,
+    p_nm_usuario VARCHAR(100),
+    p_sobrenome VARCHAR(100),
+    p_email_usuario VARCHAR(100),
+    p_nr_tel_usuario VARCHAR(20),
+    p_dt_nasci_usuario DATE,
+    p_biografia VARCHAR(280),
+    p_sexo VARCHAR(20),
+    p_apelido VARCHAR(100),
+    p_senha_usuario VARCHAR(100),
+	p_url_imagem VARCHAR(500)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Verificar se o e-mail já existe
+    IF EXISTS (SELECT 1 FROM usuario WHERE email_usuario = p_email_usuario) THEN
+        RAISE EXCEPTION 'O e-mail % já está em uso.', p_email_usuario;
+    
+    -- Verificar se o número de telefone já existe
+    ELSIF EXISTS (SELECT 1 FROM usuario WHERE nr_tel_usuario = p_nr_tel_usuario) THEN
+        RAISE EXCEPTION 'O número de telefone % já está em uso.', p_nr_tel_usuario;
+    
+    ELSE
+        -- Inserir o novo usuário
+        INSERT INTO usuario (id, nm_usuario, sobrenome, email_usuario, nr_tel_usuario, dt_nasci_usuario, biografia, sexo, apelido, senha_usuario, url_imagem)
+        VALUES (p_id, p_nm_usuario, p_sobrenome, p_email_usuario, p_nr_tel_usuario, p_dt_nasci_usuario, p_biografia, p_sexo, p_apelido, p_senha_usuario, p_url_imagem);
+    END IF;
+END;
+$$;
+
+-- Teste para provar que a Procedure funciona e não deixa repetir nem e-mail e nem número de telefone.
+
+CALL inserir_usuario(
+    '2', 
+    'Neife Lourivaldo', 
+    'Oliveira', 
+    'neifel@gmail.com', 
+    '(11) 99572-0660', 
+    '2007-10-23', 
+    'Oi, eu estou usando o Leontis!', 
+    'Masculino', 
+    'Neife Junior', 
+    'senha1234@',
+    'url'
+);
+
+
+															-- Procedure para atualização de informação de usuário --
+															
+-- A procedure abaixo serve para a atualização de usuário seguindo os requisitos solicitados pela equipe de DEV. Eles querem atualizar quantas informações forem necessárias, mantendo o ID que será gerado
+-- por eles mesmos, eles saberão esse ID e informarão automaticamente, não será um ID informado pelo usuário, porque ele não terá acesso a esse informação.
+-- Eles informarão o ID, juntamente as solicitações de atualização que o usuário desejar e manterão o restante. 
+-- A procedure irá verificar se caso o usuário queira atualizar o e-mail e/ou telefone, ele já não pertence a outra pessoa. Caso a pessoa mantenha o mesmo, a verificação garante que não de erro caso o 
+-- e-mail e/ou telefone sejam dele mesmo (verificando se os ids são diferentes.).
+
+CREATE OR REPLACE PROCEDURE atualizar_usuario(
+    p_id BIGINT,
+    p_nm_usuario VARCHAR(100),
+    p_sobrenome VARCHAR(100),
+    p_email_usuario VARCHAR(100),
+    p_nr_tel_usuario VARCHAR(20),
+    p_dt_nasci_usuario DATE,
+    p_biografia VARCHAR(280),
+    p_sexo VARCHAR(20),
+    p_apelido VARCHAR(100),
+    p_senha_usuario VARCHAR(100),
+	p_url_imagem VARCHAR(500)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Verificar se o usuário existe
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE id = p_id) THEN
+        RAISE EXCEPTION 'Usuário com ID % não encontrado.', p_id;
+    
+    -- Verificar se o e-mail já está em uso por outro usuário
+    ELSIF EXISTS (SELECT 1 FROM usuario WHERE email_usuario = p_email_usuario AND id != p_id) THEN
+        RAISE EXCEPTION 'O e-mail % já está em uso por outro usuário.', p_email_usuario;
+    
+    -- Verificar se o número de telefone já está em uso por outro usuário
+    ELSIF EXISTS (SELECT 1 FROM usuario WHERE nr_tel_usuario = p_nr_tel_usuario AND id != p_id) THEN
+        RAISE EXCEPTION 'O número de telefone % já está em uso por outro usuário.', p_nr_tel_usuario;
+    
+    ELSE
+        -- Atualizar as informações do usuário
+        UPDATE usuario
+        SET nm_usuario = p_nm_usuario,
+            sobrenome = p_sobrenome,
+            email_usuario = p_email_usuario,
+            nr_tel_usuario = p_nr_tel_usuario,
+            dt_nasci_usuario = p_dt_nasci_usuario,
+            biografia = p_biografia,
+            sexo = p_sexo,
+            apelido = p_apelido,
+            senha_usuario = p_senha_usuario,
+			url_imagem = p_url_imagem
+        WHERE id = p_id;
+    END IF;
+END;
+$$;
+
+-- Teste da procedure
+
+CALL atualizar_usuario(
+    '2', 
+    'Neife', 
+    'Oliveira', 
+    'neife@gmail.com', 
+    '(11) 99572-0660', 
+    '2007-10-23', 
+    'Oi, eu estou usando o Leontis!', 
+    'Masculino', 
+    'Neife Junior', 
+    'senha1234@',
+	'abcdefgh'
+);
+
+													-- Procedure para deleção de usuário de todas as tabelas relacionadas a ele --
+													
+CREATE OR REPLACE PROCEDURE deletar_usuario(p_id BIGINT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Verificar se o usuário existe
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE id = p_id) THEN
+        RAISE EXCEPTION 'Usuário com ID % não encontrado.', p_id;
+    ELSE
+        -- Deletar relacionamentos nas tabelas usuario_genero
+        DELETE FROM usuario_genero WHERE id_usuario = p_id;
+
+        -- Deletar relacionamentos nas tabelas usuario_museu
+        DELETE FROM usuario_museu WHERE id_usuario = p_id;
+
+        -- Deletar o usuário da tabela usuario
+        DELETE FROM usuario WHERE id = p_id;
+    END IF;
+END;
+$$;
+
+-- Testando Procedure
+
+CALL deletar_usuario('2');
+
+
+									-- Procedure que verifica se a relação entre o usuário e o museu já existe e, com base nisso, adiciona ou remove a relação. --
+									
+CREATE OR REPLACE PROCEDURE gerenciar_seguidores_museu(
+	p_id BIGINT,
+    p_id_usuario BIGINT,
+    p_id_museu BIGINT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Verificar se a relação entre o usuário e o museu já existe
+    IF EXISTS (SELECT 1 FROM usuario_museu WHERE id_usuario = p_id_usuario AND id_museu = p_id_museu) THEN
+        -- Se existir, remover a relação (parar de seguir)
+        DELETE FROM usuario_museu WHERE id_usuario = p_id_usuario AND id_museu = p_id_museu;
+        RAISE NOTICE 'Usuário % parou de seguir o museu %.', p_id_usuario, p_id_museu;
+    ELSE
+        -- Se não existir, adicionar a relação (começar a seguir)
+        INSERT INTO usuario_museu (id, id_usuario, id_museu)
+        VALUES (p_id, p_id_usuario, p_id_museu);
+        RAISE NOTICE 'Usuário % começou a seguir o museu %.', p_id_usuario, p_id_museu;
+    END IF;
+END;
+$$;
+
+-- Testando a Procedure 
+CALL gerenciar_seguidores_museu('1', '1', '2');
+
+
+									-- Procedure que verifica se a relação entre o usuário e o genero já existe e, com base nisso, adiciona ou remove a relação. --
+
+CREATE OR REPLACE PROCEDURE gerenciar_generos_usuario(
+    p_id BIGINT,
+    p_id_usuario BIGINT,
+    p_id_genero BIGINT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Verificar se a relação entre o usuário e o gênero já existe
+    IF EXISTS (SELECT 1 FROM usuario_genero WHERE id_usuario = p_id_usuario AND id_genero = p_id_genero) THEN
+        -- Se existir, remover a relação (parar de acompanhar o gênero)
+        DELETE FROM usuario_genero WHERE id_usuario = p_id_usuario AND id_genero = p_id_genero;
+        RAISE NOTICE 'Usuário % parou de acompanhar o gênero %.', p_id_usuario, p_id_genero;
+    ELSE
+        -- Se não existir, adicionar a relação (começar a acompanhar o gênero)
+        INSERT INTO usuario_genero (id, id_usuario, id_genero)
+        VALUES (p_id, p_id_usuario, p_id_genero);
+        RAISE NOTICE 'Usuário % começou a acompanhar o gênero %.', p_id_usuario, p_id_genero;
+    END IF;
+END;
+$$;
+
+-- Testando a Procedure
+CALL gerenciar_generos_usuario('2', '1', '2');
 
 --------------------------------------------------- Criação de Triggers para Log das tabelas --------------------------------------------------- 
 
 													-- Trigger para a tabela usuário --
 												
 CREATE OR REPLACE FUNCTION log_usuario_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela usuario
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -523,9 +758,22 @@ BEGIN
         INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_usuario
 AFTER INSERT OR UPDATE OR DELETE ON usuario
@@ -535,10 +783,9 @@ EXECUTE FUNCTION log_usuario_operation();
 													-- Trigger para a tabela genero --
 												
 CREATE OR REPLACE FUNCTION log_genero_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela genero
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_genero (operacao, data_operacao, id_genero)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -549,9 +796,22 @@ BEGIN
         INSERT INTO log_genero (operacao, data_operacao, id_genero)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('genero', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('genero', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('genero', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_genero
 AFTER INSERT OR UPDATE OR DELETE ON genero
@@ -561,10 +821,9 @@ EXECUTE FUNCTION log_genero_operation();
 													-- Trigger para a tabela obra --
 												
 CREATE OR REPLACE FUNCTION log_obra_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela obra
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_obra (operacao, data_operacao, id_obra)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -575,9 +834,22 @@ BEGIN
         INSERT INTO log_obra (operacao, data_operacao, id_obra)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('obra', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('obra', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('obra', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_obra
 AFTER INSERT OR UPDATE OR DELETE ON obra
@@ -587,10 +859,9 @@ EXECUTE FUNCTION log_obra_operation();
 													-- Trigger para a tabela museu --
 												
 CREATE OR REPLACE FUNCTION log_museu_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela museu
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_museu (operacao, data_operacao, id_museu)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -601,9 +872,22 @@ BEGIN
         INSERT INTO log_museu (operacao, data_operacao, id_museu)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('museu', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('museu', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('museu', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_museu
 AFTER INSERT OR UPDATE OR DELETE ON museu
@@ -611,12 +895,11 @@ FOR EACH ROW
 EXECUTE FUNCTION log_museu_operation();
 
 													-- Trigger para a tabela endereco_museu --
-												
-CREATE OR REPLACE FUNCTION log_endereco_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+													
+CREATE OR REPLACE FUNCTION log_endereco_museu_operation()
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela endereco_museu
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -627,9 +910,22 @@ BEGIN
         INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('endereco_museu', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('endereco_museu', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('endereco_museu', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_endereco
 AFTER INSERT OR UPDATE OR DELETE ON endereco_museu
@@ -639,10 +935,9 @@ EXECUTE FUNCTION log_endereco_operation();
 													-- Trigger para a tabela guia --
 												
 CREATE OR REPLACE FUNCTION log_guia_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela guia
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_guia (operacao, data_operacao, id_guia)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -653,9 +948,22 @@ BEGIN
         INSERT INTO log_guia (operacao, data_operacao, id_guia)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('guia', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('guia', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('guia', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_guia
 AFTER INSERT OR UPDATE OR DELETE ON guia
@@ -665,10 +973,9 @@ EXECUTE FUNCTION log_guia_operation();
 													-- Trigger para a tabela artista --
 												
 CREATE OR REPLACE FUNCTION log_artista_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela artista
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_artista (operacao, data_operacao, id_artista)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -679,9 +986,23 @@ BEGIN
         INSERT INTO log_artista (operacao, data_operacao, id_artista)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('artista', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('artista', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('artista', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER trigger_log_artista
 AFTER INSERT OR UPDATE OR DELETE ON artista
@@ -691,10 +1012,9 @@ EXECUTE FUNCTION log_artista_operation();
 													-- Trigger para a tabela dia_funcionamento --
 												
 CREATE OR REPLACE FUNCTION log_dia_funcionamento_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela dia_funcionamento
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -705,9 +1025,22 @@ BEGIN
         INSERT INTO log_dia_funcionamento (operacao, data_operacao, id_dia_funcionamento)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('dia_funcionamento', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('dia_funcionamento', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('dia_funcionamento', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_log_dia_funcionamento
 AFTER INSERT OR UPDATE OR DELETE ON dia_funcionamento
@@ -721,6 +1054,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela usuario_museu
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -731,6 +1065,19 @@ BEGIN
         INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_museu', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_museu', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_museu', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
 $$;
@@ -747,6 +1094,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela obra_guia
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -757,6 +1105,19 @@ BEGIN
         INSERT INTO log_obra_guia (operacao, data_operacao, id_obra_guia)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('obra_guia', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('obra_guia', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('obra_guia', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
 $$;
@@ -773,6 +1134,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela artista_genero
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -783,6 +1145,19 @@ BEGIN
         INSERT INTO log_artista_genero (operacao, data_operacao, id_artista_genero)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('artista_genero', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('artista_genero', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('artista_genero', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
 $$;
@@ -799,6 +1174,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- Inserir na tabela de log específica da tabela usuario_genero
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -809,14 +1185,74 @@ BEGIN
         INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
+
+    -- Inserir na tabela de log geral
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_genero', NEW.id, 'INSERT');
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_genero', NEW.id, 'UPDATE');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_genero', OLD.id, 'DELETE');
+    END IF;
+
     RETURN NEW;
 END;
 $$;
+
 
 CREATE TRIGGER trigger_log_usuario_genero
 AFTER INSERT OR UPDATE OR DELETE ON usuario_genero
 FOR EACH ROW
 EXECUTE FUNCTION log_usuario_genero_operation();
+
+																						
+
+-- As triggers abaixo são para complementarmos as ações necessárias.
+
+-- Essa trigger será para registrarmos o histórico de quando o usuário seguir e deixar de seguir um museu.
+CREATE OR REPLACE FUNCTION log_acoes_usuario_museu()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_usuario_museu_acoes (id_usuario, id_museu, acao)
+        VALUES (NEW.id_usuario, NEW.id_museu, 'SEGUIR');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_usuario_museu_acoes (id_usuario, id_museu, acao)
+        VALUES (OLD.id_usuario, OLD.id_museu, 'DEIXAR DE SEGUIR');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_log_acoes_usuario_museu
+AFTER INSERT OR DELETE ON usuario_museu
+FOR EACH ROW
+EXECUTE FUNCTION log_acoes_usuario_museu();
+
+
+-- Essa trigger será para registrarmos ações (acompanhar e deixar de acompanhar) na tabela usuario_genero
+CREATE OR REPLACE FUNCTION log_acoes_usuario_genero()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO log_usuario_genero_acoes (id_usuario, id_genero, acao)
+        VALUES (NEW.id_usuario, NEW.id_genero, 'ACOMPANHAR');
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO log_usuario_genero_acoes (id_usuario, id_genero, acao)
+        VALUES (OLD.id_usuario, OLD.id_genero, 'DEIXAR DE ACOMPANHAR');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_log_acoes_usuario_genero
+AFTER INSERT OR DELETE ON usuario_genero
+FOR EACH ROW
+EXECUTE FUNCTION log_acoes_usuario_genero();
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Drops Normais
@@ -836,29 +1272,29 @@ drop table usuario_museu cascade
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Drops Tabelas de Log
 
-drop table log_usuario cascade
-drop table log_genero cascade
-drop table log_obra cascade
-drop table log_museu cascade
-drop table log_endereco cascade
-drop table log_guia cascade
-drop table log_artista cascade
-drop table log_dia_funcionamento cascade
-drop table log_usuario_museu cascade
-drop table log_obra_guia cascade
-drop table log_artista_genero cascade
-drop table log_usuario_genero cascade
+-- drop table log_usuario cascade
+-- drop table log_genero cascade
+-- drop table log_obra cascade
+-- drop table log_museu cascade
+-- drop table log_endereco cascade
+-- drop table log_guia cascade
+-- drop table log_artista cascade
+-- drop table log_dia_funcionamento cascade
+-- drop table log_usuario_museu cascade
+-- drop table log_obra_guia cascade
+-- drop table log_artista_genero cascade
+-- drop table log_usuario_genero cascade
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Selects Normais
 
 select * from artista 
-select * from artista_genero
+select * from artista_genero 
 select * from dia_funcionamento
 select * from genero 
-select * from guia 
-select * from endereco_museu
+select * from guia
+select * from endereco_museu 
 select * from museu 
 select * from obra
 select * from obra_guia
@@ -882,4 +1318,19 @@ select * from log_usuario_museu
 select * from log_obra_guia
 select * from log_artista_genero
 select * from log_usuario_genero
+select * from log_usuario_museu_acoes;
+select * from log_usuario_genero_acoes;
+select * from log_geral;
+
+
+INSERT INTO usuario (id, nm_usuario, sobrenome, email_usuario, nr_tel_usuario, dt_nasci_usuario, biografia, sexo, apelido, senha_usuario)
+VALUES 
+(1, 'Gabriel', 'Costa', 'gab.costa@email.com', '123456778', '2008-05-25', 'Apaixonado pela Sophie.', 'M', 'Gab', 'senha123')
+
+ 
+ 
+ 
+ 
+
+
 
