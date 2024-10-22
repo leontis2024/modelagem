@@ -70,6 +70,7 @@ Sincronização com o primeiro ano: Ferramentas e métodos para garantir a corre
 
 ### Estrutura do Repositório
 dbLeontis_PrimeiroAnoFinal.sql: Script SQL do banco de dados do primeiro ano, com as alterações mencionadas, incluindo a tabela de logs e triggers associadas.
+
 dbLeontis_SegundoAno.sql: Script SQL do banco de dados do segundo ano, focado na normalização e otimização, com procedures e triggers para sincronização.
 
 ### Equipe
