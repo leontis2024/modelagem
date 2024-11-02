@@ -32,7 +32,7 @@ Tabelas de log para monitoramento específico e uma tabela de log geral para cen
 Índices foram criados em colunas estratégicas para otimizar o desempenho das consultas, garantindo que o banco de dados suporte o crescimento de usuários e dados sem comprometer a performance.
 
 ### Estrutura do Repositório
-dbLeontis_PrimeiroAnoFinal.sql: Script SQL do banco de dados do primeiro ano, com estrutura inicial, triggers e log de operações.
+dbLeontis_PrimeiroAno.sql: Script SQL do banco de dados do primeiro ano, com estrutura inicial, triggers e log de operações.
 dbLeontis_SegundoAno.sql: Script SQL do banco de dados do segundo ano, com estrutura normalizada, procedures, triggers otimizadas e índices para melhorar o desempenho.
 
 ### Equipe
