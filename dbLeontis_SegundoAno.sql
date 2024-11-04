@@ -1,4 +1,6 @@
 -- Criação do Banco/Normalização do Banco.
+
+-- Vale ressaltar que as tabelas antigas sem a normalização, se encontram no script do banco do primeiro ano, também presente no github. 
 --------------------------------------------------------------------------
 
 -- A tabela `usuario` armazena informações pessoais dos usuários. Vamos analisar a normalização:
@@ -19,7 +21,7 @@ CREATE TABLE usuario
  nr_tel_usuario VARCHAR(20) constraint nr_tel_usuario_nulo not null,  
  dt_nasci_usuario DATE default current_date,  
  biografia VARCHAR(280) default 'Oi, eu estou usando o Leontis!',  
- sexo VARCHAR(20) constraint sexo_nulo not null,  
+ sexo VARCHAR(1) constraint sexo_nulo not null,  
  apelido VARCHAR(100),  
  senha_usuario VARCHAR(100) constraint senha_usuario_nula not null,
  url_imagem VARCHAR(500) 
@@ -71,14 +73,18 @@ CREATE TABLE obra
 -- Justificativa: Ao separar o endereço do museu em uma tabela distinta, evitamos a duplicação de dados de endereço em outras tabelas, como `museu`. Isso melhora a integridade dos dados e facilita a manutenção, como atualizar um endereço sem afetar outras partes do banco de dados.
 
 CREATE TABLE endereco_museu (
-    id BIGINT PRIMARY KEY,
+    id INT PRIMARY KEY,
     rua VARCHAR(100) NOT NULL,
-    cep VARCHAR(9) NOT NULL,
+    cep VARCHAR(20) NOT NULL,
     num_museu VARCHAR(10) NOT NULL,
     cidade VARCHAR(50) NOT NULL,
     estado VARCHAR(2) NOT NULL,
     ponto_referencia VARCHAR(150)
 );
+
+select * from endereco_museu
+
+drop table endereco_museu cascade
 
 --------------------------------------------------------------------------
 -- A tabela `museu` armazena informações sobre museus e faz referência ao endereço do museu.
@@ -89,15 +95,21 @@ CREATE TABLE endereco_museu (
 -- Justificativa: Ao utilizar uma chave estrangeira para o endereço (`id_endereco`), asseguramos que cada museu tenha um endereço único e correto, reduzindo a duplicação de dados e facilitando a integridade e consistência dos dados de endereço.
 
 
-CREATE TABLE museu (
-    id BIGINT PRIMARY KEY,
-    nm_museu VARCHAR(100) constraint nm_museu_nulo not null,
-    desc_museu TEXT default 'Este museu passou por tanta coisa! Concorda?',
-    id_endereco BIGINT REFERENCES endereco_museu(id),  -- Chave estrangeira para a tabela endereco_museu
-    dt_inauguracao DATE default current_date,
-    nr_tel_museu VARCHAR(20),
-	url_imagem VARCHAR(500) 
+CREATE TABLE museu 
+( 
+    id SERIAL PRIMARY KEY,  
+    id_museu_adm INT NOT NULL, 
+    nm_museu VARCHAR(100) NOT NULL,  
+    desc_museu TEXT DEFAULT 'Este museu passou por tanta coisa! Concorda?',  
+    dt_inauguracao DATE DEFAULT current_date NOT NULL, 
+    nr_tel_museu VARCHAR(20) DEFAULT 'Sem telefone!',
+    url_imagem VARCHAR(500) DEFAULT 'https://images2.imgbox.com/2d/47/iwT9Tl4Q_o.png',
+    cnpj VARCHAR(18) NOT NULL, -- CNPJ com formato padrão
+    id_endereco INT,
+    CONSTRAINT fk_endereco_museu FOREIGN KEY (id_endereco) REFERENCES endereco_museu(id_endereco),
+    CONSTRAINT fk_museu_adm FOREIGN KEY (id_museu_adm) REFERENCES museu_adm(id)
 );
+
 
 --------------------------------------------------------------------------
 -- A tabela `guia` armazena informações sobre guias de museus e suas associações com os museus.
@@ -200,6 +212,16 @@ CREATE TABLE usuario_genero
 -- -- A tabela usuario_genero corresponde a tabela onde será armazenado os dados de quando após o usuário se cadastrar, ele responde uma especie de pesquisa e escolhe os generos de arte que ele mais gosta. 
 -- Para que veja mais informações sobre esse genero.
 
+-- Criando a tabela museu_adm para gerenciar as informações de login do museu (requisito do primeiro ano)
+
+CREATE TABLE museu_adm
+(
+    id SERIAL PRIMARY KEY,
+    email_adm VARCHAR(100) UNIQUE constraint email_adm_nulo not null, 
+    senha_usuario VARCHAR(100) constraint senha_adm_nula not null
+);
+
+
 
 --------------------------------------------------------------------------
 -- Estabelecendo relações
@@ -255,172 +277,457 @@ ALTER TABLE usuario_genero
 ADD FOREIGN KEY(id_genero) 
 REFERENCES genero (id);
 
-
 --------------------------------------------------------- Fazendo Inserções ---------------------------------------------------------
-												-- Inserindo dados na tabela genero --
-INSERT INTO genero (id, nm_genero, introducao, desc_genero)
-values
-    (1,
-     'Neorrealismo',
-     'O neorrealismo foi movimento artístico que surgiu no início de século XX que teve influências de movimento políticos como o socialismo, o comunismo e o marxismo.',
-     'O neorrealismo foi uma corrente artística de meados do século XX, com um carácter ideológico marcadamente de esquerda marxista, que teve ramificações em várias formas de arte (literatura, pintura, música), mas atingiu o seu expoente máximo no Cinema neorrealista, sobretudo no realismo poético francês e no neorrealismo italiano. Com o mesmo nome, mas com distinção, pode ser observada uma Teoria das relações internacionais.'),
-     
-    (2,
-     'Simbolismo',
-     'A poesia simbolista apresenta teor metafísico, musicalidade, alienação social, rigor formal e caráter sinestésico.',
-     'Simbolismo é um movimento literário da poesia e das outras artes que surgiu na França, no final do século XIX, como oposição ao realismo, ao naturalismo e ao positivismo da época. Como escola literária, teve suas origens na obra As Flores do Mal, do poeta Charles Baudelaire. Ademais, os trabalhos de Edgar Allan Poe, os quais Baudelaire admirava e traduziu para francês, foram de significativa influência, além de servirem como fontes de diversos tropos e imagens. Fundamentou-se principalmente na subjetividade, no irracional e na análise profunda da mensagem, a partir da sinestesia.');
 
-												-- Inserindo dados na tabela artista --
-INSERT INTO artista (id, nm_artista, desc_artista, local_nasc, local_morte, dt_nasc_artista, dt_falecimento)
-VALUES
-    (1,
-     'Cândido Portinari',
-     'Candido Portinari OMC foi um artista plástico brasileiro. Portinari pintou mais de cinco mil obras, de pequenos esboços e pinturas de proporções padrão, como O Lavrador de Café, até gigantescos murais, como os painéis Guerra e Paz, presenteados à sede da ONU em Nova Iorque em 1956, e que, em dezembro de 2010, graças aos esforços de seu filho, retornaram para exibição no Teatro Municipal do Rio de Janeiro.',
-     'Brodowski, São Paulo',
-     'Rio de Janeiro, Rio de Janeiro',
-     '1903-12-29',
-     '1962-02-06'),
-     
-    (2,
-     'Rodolfo Amoedo',
-     'Rodolfo Amoedo foi um pintor, desenhista, professor e decorador brasileiro. Era professor na Escola Nacional de Belas Artes do Rio de Janeiro e foi considerado um ótimo conhecedor das técnicas artísticas.',
-     'Salvador, Bahia',
-     'Rio de Janeiro, Rio de Janeiro',
-     '1857-12-11',
-     '1914-05-31');
+-- Inserções para teste de conexão.
+-- Vale ressaltar que nem todas as inserçõe estão aqui, pois estão sendo realizadas no banco do primeiro ano e transportadas através do RPA.
 
-												-- Inserindo dados na tabela artista_genero --
-INSERT INTO artista_genero (id, id_artista, id_genero)
-VALUES
-    (1,1, 1),
-    (2,2, 2);
+--INSERTS Usuário
+INSERT INTO usuario ( id
+					,  nm_usuario
+					, sobrenome
+					, email_usuario
+					, nr_tel_usuario
+					, dt_nasci_usuario
+					, biografia
+					, sexo
+					, apelido
+					, senha_usuario
+					, url_imagem
+					) 
+			 VALUES ( 1
+			 		,  'Alice'
+					, 'Silva'
+					, 'alice.silva@gmail.com'
+					, '(15) 92275-7124'
+					, '1990-01-01'
+					, DEFAULT
+					, 'F'
+					, 'Lice'
+					, 'senha123'
+					, DEFAULT
+					)
+					,
+				    ( 2
+					, 'Bob'
+					, 'Santos'
+					, 'bob.santos@outlook.com'
+					, '(13) 92023-9285'
+					, '1988-02-02'
+					, DEFAULT
+					, 'M'
+					, 'Bobster'
+					, 'senha456'
+					, DEFAULT
+					)
+					,
+					( 3
+					, 'Carlos'
+					, 'Oliveira'
+					, 'carlos.oliveira@gmail.com'
+					, '(11) 93111-2687'
+					, '1992-03-03'
+					, DEFAULT
+					, 'M'
+					, 'Carlito'
+					, 'senha789'
+					, DEFAULT
+					)
+					,
+					( 4
+					, 'Daniela'
+					, 'Costa'
+					, 'daniela.costa@hotmail.com'
+					, '(17) 92173-2652'
+					, '1985-04-04'
+					, DEFAULT
+					, 'F'
+					, 'Dani'
+					, 'senha012'
+					, DEFAULT
+					)
+					,
+					( 5
+					, 'Eduardo'
+					, 'Ferreira'
+					, 'eduardo.ferreira@gmail.com'
+					, '(15) 92729-4416'
+					, '1993-05-05'
+					, DEFAULT
+					, 'M'
+					, 'Dudu'
+					, 'senha345'
+					, DEFAULT
+					)
+					,
+					( 6
+					, 'Fernanda'
+					, 'Gomes'
+					, 'fernanda.gomes@hotmail.com'
+					, '(12) 92470-3258'
+					, '1991-06-06'
+					, DEFAULT
+					, 'F'
+					, 'Fê'
+					, 'senha678'
+					, DEFAULT
+					)
+					,
+					( 7
+					, 'Gustavo'
+					, 'Martins'
+					, 'gustavo.martins@gmail.com'
+					, '(17) 93051-5556'
+					, '1987-07-07'
+					, DEFAULT
+					, 'M'
+					, 'Gu'
+					, 'senha901'
+					, DEFAULT
+					)
+					,
+					( 8
+					, 'Helena'
+					, 'Ribeiro'
+					, 'helena.ribeiro@gmail.com'
+					, '(12) 92541-6391'
+					, '1994-08-08'
+					, DEFAULT
+					, 'F'
+					, 'Leninha'
+					, 'senha234'
+					, DEFAULT
+					)
+					,
+					( 9
+					, 'Igor'
+					, 'Almeida'
+					, 'igor.almeida@outlook.com'
+					, '(19) 93451-9214'
+					, '1995-09-09'
+					, DEFAULT
+					, 'M'
+					, 'Igão'
+					, 'senha567'
+					, DEFAULT
+					)
+					,
+					( 10
+					, 'Julia'
+					, 'Mendes'
+					, 'julia.mendes@gmail.com'
+					, '(14) 92132-5744'
+					, '1986-10-10'
+					, DEFAULT
+					, 'F'
+					, 'Juju'
+					, 'senha890'
+					, DEFAULT
+					)
+					,
+					( 11
+					, 'Kleber'
+					, 'Cardoso'
+					, 'kleber.cardoso@gmail.com'
+					, '(13) 93650-8338'
+					, '1989-11-11'
+					, DEFAULT
+					, 'M'
+					, 'CardoKleb'
+					, 'senha1234'
+					, DEFAULT
+					)
+					,
+					( 12
+					, 'Larissa'
+					, 'Rocha'
+					, 'larissa.rocha@outlook.com'
+					, '(16) 92743-1295'
+					, '1990-12-12'
+					, DEFAULT
+					, 'F'
+					, 'Lari'
+					, 'senha5678'
+					, DEFAULT)
+					,
+					( 13
+					, 'Marcelo'
+					, 'Sousa'
+					, 'marcelo.sousa@outlook.com'
+					, '(11) 92743-1295'
+					, '1988-01-13'
+					, DEFAULT
+					, 'M'
+					, 'Marcel'
+					, 'senha9012'
+					, DEFAULT
+					)
+					,
+					( 14
+					, 'Natalia'
+					, 'Araujo'
+					, 'natalia.araujo@gmail.com'
+					, '(11) 93821-0779'
+					, '1992-02-14'
+					, DEFAULT
+					, 'F'
+					, 'Nati'
+					, 'senha3456'
+					, DEFAULT
+					)
+					,
+					( 15
+					, 'Otávio'
+					, 'Barros'
+					, 'otavio.barros@outlook.com'
+					, '(11) 93983-4524'
+					, '1985-03-15'
+					, DEFAULT
+					, 'M'
+					, 'Tavin'
+					, 'senha7890'
+					, DEFAULT
+					)
+					,
+					( 16
+					, 'Paula'
+					, 'Monteiro'
+					, 'paula.monteiro@outlook.com'
+					, '(11) 93628-2512'
+					, '1991-04-16'
+					, DEFAULT
+					, 'F'
+					, 'Paulinha'
+					, 'senha1235'
+					, DEFAULT
+					)
+					,
+					( 17
+					, 'Quintino'
+					, 'Vasconcelos'
+					, 'quintino.vasconcelos@gmail.com'
+					, '(11) 93120-1714'
+					, '1989-05-17'
+					, DEFAULT
+					, 'M'
+					, 'Quinto'
+					, 'senha4567'
+					, DEFAULT
+					)
+					,
+					( 18
+					, 'Renata'
+					, 'Dias'
+					, 'renata.dias@outlook.com'
+					, '(15) 92662-4750'
+					, '1993-06-18'
+					, DEFAULT
+					, 'F'
+					, 'Rê'
+					, 'senha7891'
+					, DEFAULT
+					)
+					,
+					( 19
+					, 'Sérgio'
+					, 'Pereira'
+					, 'sergio.pereira@gmail.com'
+					, '(11) 93533-3484'
+					, '1987-07-19'
+					, DEFAULT
+					, 'M'
+					, 'Serginho'
+					, 'senha0123'
+					, DEFAULT
+					)
+					,
+					( 20
+					, 'Tatiana'
+					, 'Ramos'
+					, 'tatiana.ramos@gmail.com'
+					, '(12) 93767-9329'
+					, '1995-08-20'
+					, DEFAULT
+					, 'F'
+					, 'Tati'
+					, 'senha4568'
+					, DEFAULT
+					)
+					,
+					( 21
+					, 'Ulisses'
+					, 'Moura Junior'
+					, 'ulisses.junior@hotmail.com'
+					, '(11) 92479-0381'
+					, '1986-09-21'
+					, DEFAULT
+					, 'M'
+					, 'Junior'
+					, 'senha7892'
+					, DEFAULT
+					)
+					,
+					( 22
+					, 'Vanessa'
+					, 'Freitas'
+					, 'vanessa.freitas@gmail.com'
+					, '(12) 92178-6244'
+					, '1991-10-22'
+					, DEFAULT
+					, 'F'
+					, 'Nessa'
+					, 'senha0124'
+					, DEFAULT
+					)
+					,
+					( 23
+					, 'Wagner'
+					, 'Carvalho'
+					, 'wagner.carvalho@outlook.com'
+					, '(13) 92466-3718'
+					, '1988-11-23'
+					, DEFAULT
+					, 'M'
+					, 'Wag'
+					, 'senha3457'
+					, DEFAULT
+					)
+					,
+					( 24
+					, 'Milena'
+					, 'Silveira'
+					, 'milena.silveira@hotmail.com'
+					, '(13) 93818-6926'
+					, '1990-12-24'
+					, DEFAULT
+					, 'F'
+					, 'Lena'
+					, 'senha6789'
+					, DEFAULT
+					)
+					,
+					( 25
+					, 'Yuri'
+					, 'Teixeira'
+					, 'yuri.teixeira@gmail.com'
+					, '(11) 93287-2109'
+					, '1987-01-25'
+					, DEFAULT
+					, 'M'
+					, 'Yuri'
+					, 'senha9013'
+					, DEFAULT
+					)
+					,
+					( 26
+					, 'Zuleica'
+					, 'Moreira'
+					, 'zuleica.moreira@outlook.com'
+					, '(11) 92388-9782'
+					, '1992-02-26'
+					, DEFAULT
+					, 'F'
+					, 'Zul'
+					, 'senha2345'
+					, DEFAULT
+					);
 
-												-- Inserindo os endereços na tabela endereco_museu --
-INSERT INTO endereco_museu (id, rua, cep, num_museu, cidade, estado, ponto_referencia)
-VALUES
-    (1, 'Av. Paulista', '01310-200', '1578', 'Bela Vista, São Paulo', 'SP', ''),
-    (2, 'Av. Rio Branco', '20040-008', '199', 'Centro, Rio de Janeiro', 'RJ', '');
 
-												-- Inserindo os museus na tabela museu --
-INSERT INTO museu (id, nm_museu, desc_museu, id_endereco, nr_tel_museu, dt_inauguracao)
-VALUES
-    (1,
-     'Museu de Arte de São Paulo Assis Chateaubriand',
-     'Museu de Arte de São Paulo Assis Chateaubriand é um centro cultural e museu de arte brasileiro fundado em 1947 pelo empresário e jornalista paraibano Assis Chateaubriand. Entre os anos de 1947 e 1990, o crítico e marchand italiano Pietro Bardi assumiu a direção do MASP a convite de Chateaubriand.',
-     '1',
-     '(11) 3149-5959',
-     '1947-01-01'),
+--INSERTS usuario_museu
+INSERT INTO usuario_museu (id, id_museu, id_usuario) VALUES 
+( 1, 1, 1),
+( 2, 1, 2),
+( 3, 1, 3),
+( 4, 1, 4),
+( 5, 1, 5),
 
-    (2,
-     'Museu Nacional de Belas Artes',
-     'O Museu Nacional de Belas Artes é um museu de arte localizado na cidade do Rio de Janeiro, no Brasil. Concentra o maior acervo de obras de arte do século XIX, sendo um dos mais importantes museus do gênero no país.',
-     '2',
-     '(21) 2219-8474',
-     '1937-01-01');
+( 6, 2, 6),
+( 7, 2, 7),
+( 8, 2, 8),
+( 9, 2, 9),
+( 10, 2, 1), 
+
+( 11, 3, 10),
+( 12, 3, 11),
+( 13, 3, 12),
+( 14, 3, 13),
+( 15, 3, 14),
+
+( 16, 4, 15),
+( 17, 4, 16),
+( 18, 4, 17),
+( 19, 4, 18),
+( 20, 4, 2),
+
+( 21, 5, 19),
+( 22, 5, 20),
+( 23, 5, 21),
+( 24, 5, 22),
+( 25, 5, 3); 
 
 
-												-- Inserindo dados na tabela dia_funcionamento --
-INSERT INTO dia_funcionamento (id,id_museu, dia_semana, pr_dia_funcionamento, hr_inicio, hr_termino)
-VALUES
-    (1,1, 'Quarta', 50.00, '10:00', '18:00'),
-    (2,1, 'Quinta', 70.00, '10:00', '18:00'),
-    (3,1, 'Sexta', 70.00, '10:00', '18:00'),
-    (4,1, 'Sábado', 70.00, '10:00', '18:00'),
-    (5,1, 'Domingo', 70.00, '10:00', '18:00'),
-    (6,1, 'Terça', 60.00, '10:00', '20:00'),
-    (7,2, 'Terça', 0.00, '10:00', '18:00'),
-    (8,2, 'Quarta', 0.00, '10:00', '18:00'),
-    (9,2, 'Quinta', 0.00, '10:00', '18:00'),
-    (10,2, 'Sexta', 0.00, '10:00', '18:00'),
-    (11,2, 'Sábado', 0.00, '12:00', '17:00'),
-    (12,2, 'Domingo', 0.00, '12:00', '17:00');
+--INSERTS usuario_genero
+INSERT INTO usuario_genero (id, id_usuario, id_genero) VALUES
+( 1, 3, 7), 
+( 2, 13, 7), 
+( 3, 22, 7), 
+( 4, 7, 10), 
+( 5, 11, 10), 
+( 6, 16, 10),
+( 7, 20, 10),
+( 8, 25, 10), 
+( 9, 10, 6), 
+( 10, 17, 6), 
+( 11, 24, 6), 
+( 12, 2, 5), 
+( 13, 12, 5), 
+( 14, 19, 5), 
+( 15, 21, 9), 
+( 16, 23, 9), 
+( 17, 5, 2), 
+( 18, 26, 2), 
+( 19, 6, 3),
+( 20, 21, 3), 
+( 21, 4, 8), 
+( 22, 14, 8), 
+( 23, 20, 8), 
+( 24, 23, 8), 
+( 25, 1, 1), 
+( 26, 15, 1), 
+( 27, 25, 1), 
+( 28, 9, 4), 
+( 29, 18, 4); 
 
-												-- Inserindo dados na tabela obra --
-INSERT INTO obra (id,nm_obra, desc_obra, ano_inicio, ano_final, id_genero, id_artista, id_museu)
-VALUES
-    (1,
-     'Más Notícias',
-     'Más Notícias é uma obra de arte feita por Rodolfo Amoedo em 1895. Retrata uma mulher sentada em uma poltrona, com o olhar direcionado para a frente, encarando quem a observa.',
-     NULL,
-     '1895',
-     2,
-     2,
-     2),
-     
-    (2,
-     'Lavrador de Café',
-     'O Lavrador de Café é uma obra de Cândido Portinari. Atualmente, pertence ao acervo do MASP. É uma pintura a óleo sobre tela, datada de 1934.',
-     NULL,
-     '1934',
-     1,
-     1,
-     1),
-     
-    (3,
-     'Obra 1',
-     'Primeira obra do guia.',
-     NULL,
-     '1999',
-     1,
-     1,
-     1),
-     
-    (4,
-     'Obra 2',
-     'Segunda obra do guia.',
-     NULL,
-     '1999',
-     2,
-     2,
-     1),
-     
-    (5,
-     'Obra 3',
-     'Terceira obra do guia.',
-     NULL,
-     '1999',
-     1,
-     2,
-     1),
-     
-    (6,
-     'Obra 4',
-     'Quarta obra do guia.',
-     NULL,
-     '1999',
-     2,
-     1,
-     1);
 
-												-- Inserindo dados na tabela guia --
-INSERT INTO guia (id,titulo_guia, desc_guia, id_museu)
-VALUES
-    (1,'Guia lindo', 'Obras legais e maravilhosas', 1);
-
-												-- Inserindo dados na tabela obra_guia --
-INSERT INTO obra_guia (id,id_guia, id_obra, nr_ordem, desc_localizacao)
-VALUES
-    (1,1, 3, 1,'Seguindo corredor principal, na sessão de obras do simbolismo'),
-    (2,1, 4, 2,'Duas pinturas a esqueda de “A dama de vermelho'),
-    (3,1, 5, 3,'Seguindo o corredor ao lado dos sanitários, é a terceira obra de arte'),
-    (4,1, 6, 4,'A pintura esta na sessão central do meuseu, ela esta exposta em local aberto');
-
-												-- Inserindo dados na tabela usuario --
-INSERT INTO usuario (id,nm_usuario, sobrenome, apelido, sexo, email_usuario, nr_tel_usuario, senha_usuario, dt_nasci_usuario)
-VALUES
-    (1,'Ana Beatriz', 'Almeida', 'Ana Bea', 'Feminino', 'email@gmail.com', '(11) 98765-4321', 'senha1234@', '2007-09-12');
-
-												-- Inserindo dados na tabela usuario_genero --
-INSERT INTO usuario_genero (id,id_usuario, id_genero)
-VALUES
-    (1,1, 1),
-    (2,1, 2);
-
-												-- Inserindo dados na tabela usuario_museu --
-INSERT INTO usuario_museu (id,id_museu, id_usuario)
-VALUES
-    (1,2, 1);
-
+INSERT INTO museu_adm ( id
+					  , email_adm
+					  , senha_adm 
+					  )
+			   VALUES ( 1
+			   		  , 'adm_pinacoteca@gmail.com'
+					  , 'Mus@Senha'
+			          )
+					  , 
+					  ( 2
+					  , 'adm_ims@outlook.com'
+					  , 'Mus@Senha'
+					  )
+					  ,
+					  ( 3
+					  , 'adm_ipiranga@hotmail.com'
+					  , 'Mus@Senha'
+					  )
+					  ,
+					  ( 4
+					  , 'adm_mam@gmail.com'
+					  , 'Mus@Senha'
+					  )
+					  ,
+					  ( 5
+					  , 'adm_mnba@hotmail.com'
+					  , 'Mus@Senha'
+					  )
+					  ;
  
 -------------------------------------------------------- Criando tabelas de log -------------------------------------------------------
 
@@ -527,6 +834,7 @@ CREATE TABLE log_usuario_genero_acoes (
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tabela para registrar todas as atividades no banco, independente da tabela, para auxiliar no RPA de sincronização
 CREATE TABLE log_geral (
     id SERIAL PRIMARY KEY,
     tabela VARCHAR(50) NOT NULL,
@@ -536,8 +844,8 @@ CREATE TABLE log_geral (
 );
 
 
----------------------------------------------------------------------------------- Criando Procedures ----------------------------------------------------------------------------------------
-															-- Procedure para inserção e verificação de informações de usuário --
+----------------------------------------------------------------------- Criando Procedures --------------------------------------------------------------------------------
+													-- Procedure para inserção e verificação de informações de usuário --
 
 CREATE OR REPLACE PROCEDURE inserir_usuario(
     p_id BIGINT,
@@ -574,19 +882,18 @@ $$;
 -- Teste para provar que a Procedure funciona e não deixa repetir nem e-mail e nem número de telefone.
 
 CALL inserir_usuario(
-    '2', 
+    '27', 
     'Neife Lourivaldo', 
     'Oliveira', 
     'neifel@gmail.com', 
     '(11) 99572-0660', 
     '2007-10-23', 
     'Oi, eu estou usando o Leontis!', 
-    'Masculino', 
+    'M', 
     'Neife Junior', 
     'senha1234@',
     'url'
 );
-
 
 															-- Procedure para atualização de informação de usuário --
 															
@@ -645,18 +952,19 @@ $$;
 -- Teste da procedure
 
 CALL atualizar_usuario(
-    '2', 
+    '27', 
     'Neife', 
     'Oliveira', 
     'neife@gmail.com', 
     '(11) 99572-0660', 
     '2007-10-23', 
     'Oi, eu estou usando o Leontis!', 
-    'Masculino', 
+    'M', 
     'Neife Junior', 
     'senha1234@',
 	'abcdefgh'
 );
+
 
 													-- Procedure para deleção de usuário de todas as tabelas relacionadas a ele --
 													
@@ -682,8 +990,7 @@ $$;
 
 -- Testando Procedure
 
-CALL deletar_usuario('2');
-
+CALL deletar_usuario('27');
 
 									-- Procedure que verifica se a relação entre o usuário e o museu já existe e, com base nisso, adiciona ou remove a relação. --
 									
@@ -710,8 +1017,7 @@ END;
 $$;
 
 -- Testando a Procedure 
-CALL gerenciar_seguidores_museu('1', '1', '2');
-
+CALL gerenciar_seguidores_museu('1', '729', '3');
 
 									-- Procedure que verifica se a relação entre o usuário e o genero já existe e, com base nisso, adiciona ou remove a relação. --
 
@@ -738,50 +1044,121 @@ END;
 $$;
 
 -- Testando a Procedure
-CALL gerenciar_generos_usuario('2', '1', '2');
+CALL gerenciar_generos_usuario('2', '729', '3');
 
 --------------------------------------------------- Criação de Triggers para Log das tabelas --------------------------------------------------- 
 
 													-- Trigger para a tabela usuário --
-												
+								
 CREATE OR REPLACE FUNCTION log_usuario_operation()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Inserir na tabela de log específica da tabela usuario
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
+    IF TG_OP = 'INSERT' THEN		
+	
+		INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
         VALUES ('INSERT', NOW(), NEW.id);
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
-        VALUES ('UPDATE', NOW(), NEW.id);
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
-        VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
+		
         INSERT INTO log_geral (tabela, id_registro, operacao)
         VALUES ('usuario', NEW.id, 'INSERT');
+		
     ELSIF TG_OP = 'UPDATE' THEN
+		INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
+        VALUES ('UPDATE', NOW(), NEW.id);
+		
         INSERT INTO log_geral (tabela, id_registro, operacao)
         VALUES ('usuario', NEW.id, 'UPDATE');
+		
     ELSIF TG_OP = 'DELETE' THEN
+		INSERT INTO log_usuario (operacao, data_operacao, id_usuario)
+        VALUES ('DELETE', NOW(), OLD.id);
+		
         INSERT INTO log_geral (tabela, id_registro, operacao)
         VALUES ('usuario', OLD.id, 'DELETE');
     END IF;
-
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+-- Criando a trigger para a tabela usuario
 CREATE TRIGGER trigger_log_usuario
 AFTER INSERT OR UPDATE OR DELETE ON usuario
 FOR EACH ROW
 EXECUTE FUNCTION log_usuario_operation();
 
+
+															-- Trigger para a tabela usuario_genero
+CREATE OR REPLACE FUNCTION log_usuario_genero_operation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+		INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
+        VALUES ('INSERT', NOW(), NEW.id);
+		
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_genero', NEW.id, 'INSERT');
+		
+    ELSIF TG_OP = 'UPDATE' THEN
+		INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
+        VALUES ('UPDATE', NOW(), NEW.id);
+		
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_genero', NEW.id, 'UPDATE');
+		
+    ELSIF TG_OP = 'DELETE' THEN
+		INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
+        VALUES ('DELETE', NOW(), OLD.id);
+		
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_genero', OLD.id, 'DELETE');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Criando a trigger para a tabela usuario_genero
+CREATE TRIGGER trigger_log_usuario_genero
+AFTER INSERT OR UPDATE OR DELETE ON usuario_genero
+FOR EACH ROW
+EXECUTE FUNCTION log_usuario_genero_operation();
+
+															-- Trigger para a tabela usuario_museu
+CREATE OR REPLACE FUNCTION log_usuario_museu_operation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+		INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
+        VALUES ('INSERT', NOW(), NEW.id);
+	
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_museu', NEW.id, 'INSERT');
+		
+    ELSIF TG_OP = 'UPDATE' THEN
+		INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
+        VALUES ('UPDATE', NOW(), NEW.id);
+	
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_museu', NEW.id, 'UPDATE');
+		
+    ELSIF TG_OP = 'DELETE' THEN
+		INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
+        VALUES ('DELETE', NOW(), OLD.id);
+		
+        INSERT INTO log_geral (tabela, id_registro, operacao)
+        VALUES ('usuario_museu', OLD.id, 'DELETE');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Criando a trigger para a tabela usuario_museu
+CREATE TRIGGER trigger_log_usuario_museu
+AFTER INSERT OR UPDATE OR DELETE ON usuario_museu
+FOR EACH ROW
+EXECUTE FUNCTION log_usuario_museu_operation();
+
+
 													-- Trigger para a tabela genero --
-												
+
 CREATE OR REPLACE FUNCTION log_genero_operation()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -797,18 +1174,6 @@ BEGIN
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
 
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('genero', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('genero', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('genero', OLD.id, 'DELETE');
-    END IF;
-
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -819,11 +1184,10 @@ FOR EACH ROW
 EXECUTE FUNCTION log_genero_operation();
 
 													-- Trigger para a tabela obra --
-												
+
 CREATE OR REPLACE FUNCTION log_obra_operation()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Inserir na tabela de log específica da tabela obra
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_obra (operacao, data_operacao, id_obra)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -833,18 +1197,6 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO log_obra (operacao, data_operacao, id_obra)
         VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('obra', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('obra', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('obra', OLD.id, 'DELETE');
     END IF;
 
     RETURN NEW;
@@ -856,12 +1208,11 @@ AFTER INSERT OR UPDATE OR DELETE ON obra
 FOR EACH ROW
 EXECUTE FUNCTION log_obra_operation();
 
-													-- Trigger para a tabela museu --
-												
+													-- Trigger para a tabela museu --				
+													
 CREATE OR REPLACE FUNCTION log_museu_operation()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Inserir na tabela de log específica da tabela museu
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_museu (operacao, data_operacao, id_museu)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -871,18 +1222,6 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO log_museu (operacao, data_operacao, id_museu)
         VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('museu', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('museu', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('museu', OLD.id, 'DELETE');
     END IF;
 
     RETURN NEW;
@@ -895,11 +1234,11 @@ FOR EACH ROW
 EXECUTE FUNCTION log_museu_operation();
 
 													-- Trigger para a tabela endereco_museu --
+select * from log_endereco
 													
 CREATE OR REPLACE FUNCTION log_endereco_museu_operation()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Inserir na tabela de log específica da tabela endereco_museu
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
         VALUES ('INSERT', NOW(), NEW.id);
@@ -909,18 +1248,6 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO log_endereco (operacao, data_operacao, id_endereco)
         VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('endereco_museu', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('endereco_museu', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('endereco_museu', OLD.id, 'DELETE');
     END IF;
 
     RETURN NEW;
@@ -949,18 +1276,6 @@ BEGIN
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
 
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('guia', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('guia', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('guia', OLD.id, 'DELETE');
-    END IF;
-
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -971,7 +1286,7 @@ FOR EACH ROW
 EXECUTE FUNCTION log_guia_operation();
 
 													-- Trigger para a tabela artista --
-												
+													
 CREATE OR REPLACE FUNCTION log_artista_operation()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -985,18 +1300,6 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO log_artista (operacao, data_operacao, id_artista)
         VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('artista', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('artista', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('artista', OLD.id, 'DELETE');
     END IF;
 
     RETURN NEW;
@@ -1026,18 +1329,6 @@ BEGIN
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
 
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('dia_funcionamento', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('dia_funcionamento', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('dia_funcionamento', OLD.id, 'DELETE');
-    END IF;
-
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -1047,48 +1338,9 @@ AFTER INSERT OR UPDATE OR DELETE ON dia_funcionamento
 FOR EACH ROW
 EXECUTE FUNCTION log_dia_funcionamento_operation();
 
-													-- Trigger para a tabela usuario_museu --
-												
-CREATE OR REPLACE FUNCTION log_usuario_museu_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    -- Inserir na tabela de log específica da tabela usuario_museu
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
-        VALUES ('INSERT', NOW(), NEW.id);
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
-        VALUES ('UPDATE', NOW(), NEW.id);
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_usuario_museu (operacao, data_operacao, id_usuario_museu)
-        VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('usuario_museu', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('usuario_museu', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('usuario_museu', OLD.id, 'DELETE');
-    END IF;
-
-    RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trigger_log_usuario_museu
-AFTER INSERT OR UPDATE OR DELETE ON usuario_museu
-FOR EACH ROW
-EXECUTE FUNCTION log_usuario_museu_operation();
 
 													-- Trigger para a tabela obra_guia --
-												
+
 CREATE OR REPLACE FUNCTION log_obra_guia_operation()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -1106,18 +1358,6 @@ BEGIN
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
 
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('obra_guia', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('obra_guia', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('obra_guia', OLD.id, 'DELETE');
-    END IF;
-
     RETURN NEW;
 END;
 $$;
@@ -1128,7 +1368,7 @@ FOR EACH ROW
 EXECUTE FUNCTION log_obra_guia_operation();
 
 													-- Trigger para a tabela artista_genero --
-												
+
 CREATE OR REPLACE FUNCTION log_artista_genero_operation()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -1146,70 +1386,44 @@ BEGIN
         VALUES ('DELETE', NOW(), OLD.id);
     END IF;
 
-    -- Inserir na tabela de log geral
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('artista_genero', NEW.id, 'INSERT');
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('artista_genero', NEW.id, 'UPDATE');
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('artista_genero', OLD.id, 'DELETE');
-    END IF;
-
     RETURN NEW;
 END;
 $$;
+
 
 CREATE TRIGGER trigger_log_artista_genero
 AFTER INSERT OR UPDATE OR DELETE ON artista_genero
 FOR EACH ROW
 EXECUTE FUNCTION log_artista_genero_operation();
 
-													-- Trigger para a tabela usuario_genero --
 
-CREATE OR REPLACE FUNCTION log_usuario_genero_operation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+
+													-- Trigger para a tabela museu_adm --
+
+CREATE OR REPLACE FUNCTION log_museu_adm_operation()
+RETURNS TRIGGER AS $$
 BEGIN
-    -- Inserir na tabela de log específica da tabela usuario_genero
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
-        VALUES ('INSERT', NOW(), NEW.id);
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
-        VALUES ('UPDATE', NOW(), NEW.id);
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO log_usuario_genero (operacao, data_operacao, id_usuario_genero)
-        VALUES ('DELETE', NOW(), OLD.id);
-    END IF;
-
-    -- Inserir na tabela de log geral
     IF TG_OP = 'INSERT' THEN
         INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('usuario_genero', NEW.id, 'INSERT');
+        VALUES ('museu_adm', NEW.id, 'INSERT');
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('usuario_genero', NEW.id, 'UPDATE');
+        VALUES ('museu_adm', NEW.id, 'UPDATE');
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO log_geral (tabela, id_registro, operacao)
-        VALUES ('usuario_genero', OLD.id, 'DELETE');
+        VALUES ('museu_adm', OLD.id, 'DELETE');
     END IF;
-
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
-
-CREATE TRIGGER trigger_log_usuario_genero
-AFTER INSERT OR UPDATE OR DELETE ON usuario_genero
+CREATE TRIGGER trigger_log_museu_adm
+AFTER INSERT OR UPDATE OR DELETE ON museu_adm
 FOR EACH ROW
-EXECUTE FUNCTION log_usuario_genero_operation();
+EXECUTE FUNCTION log_museu_adm_operation();
+
 
 																						
-
 -- As triggers abaixo são para complementarmos as ações necessárias.
 
 -- Essa trigger será para registrarmos o histórico de quando o usuário seguir e deixar de seguir um museu.
@@ -1255,23 +1469,103 @@ EXECUTE FUNCTION log_acoes_usuario_genero();
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Criando indíces
+
+-- Índices na tabela usuario
+CREATE INDEX idx_email_usuario ON usuario (email_usuario);
+CREATE INDEX idx_nr_tel_usuario ON usuario (nr_tel_usuario);
+CREATE INDEX idx_apelido ON usuario (apelido);
+
+-- Índices na tabela museu
+CREATE INDEX idx_cnpj_museu ON museu (cnpj);
+CREATE INDEX idx_museu_endereco ON museu (id_endereco);
+
+-- Índice na tabela genero
+CREATE INDEX idx_nm_genero ON genero (nm_genero);
+
+-- Índices na tabela obra
+CREATE INDEX idx_obra_genero ON obra (id_genero);
+CREATE INDEX idx_obra_artista ON obra (id_artista);
+CREATE INDEX idx_obra_museu ON obra (id_museu);
+
+-- Índice composto na tabela usuario_museu
+CREATE INDEX idx_usuario_museu ON usuario_museu (id_usuario, id_museu);
+
+-- Índice composto na tabela usuario_genero
+CREATE INDEX idx_usuario_genero ON usuario_genero (id_usuario, id_genero);
+
+
+									-------------------------------- Testando os indíces --------------------------------
+
+-- Testando o Índice em email_usuario e nr_tel_usuario na Tabela usuario
+
+-- Consultas antes de criar os índices
+EXPLAIN ANALYZE SELECT * FROM usuario WHERE email_usuario = 'alice.silva@gmail.com';
+EXPLAIN ANALYZE SELECT * FROM usuario WHERE nr_tel_usuario = '(15) 92275-7124';
+
+-- Após criar os índices
+-- Devemos ver o índice sendo usado no plano de execução
+EXPLAIN ANALYZE SELECT * FROM usuario WHERE email_usuario = 'alice.silva@gmail.com';
+EXPLAIN ANALYZE SELECT * FROM usuario WHERE nr_tel_usuario = '(15) 92275-7124';
+
+
+
+-- Testando o Índice em id_endereco e cnpj na Tabela museu
+
+-- Consultas antes dos índices
+EXPLAIN ANALYZE SELECT * FROM museu WHERE id_endereco = 1;
+EXPLAIN ANALYZE SELECT * FROM museu WHERE cnpj = '00.000.000/0001-91';
+
+-- Consultas após criação dos índices
+EXPLAIN ANALYZE SELECT * FROM museu WHERE id_endereco = 1;
+EXPLAIN ANALYZE SELECT * FROM museu WHERE cnpj = '00.000.000/0001-91';
+
+-- Testando o Índice em nm_genero na Tabela genero
+
+-- Antes do índice
+EXPLAIN ANALYZE SELECT * FROM genero WHERE nm_genero = 'Arte Moderna';
+
+-- Após criação do índice
+EXPLAIN ANALYZE SELECT * FROM genero WHERE nm_genero = 'Arte Moderna';
+
+
+-- Testando Índices de Chaves Estrangeiras nas Tabelas obra, usuario_museu e usuario_genero
+
+-- Consultas antes dos índices nas tabelas com chaves estrangeiras
+EXPLAIN ANALYZE SELECT * FROM obra WHERE id_genero = 1;
+EXPLAIN ANALYZE SELECT * FROM obra WHERE id_artista = 2;
+EXPLAIN ANALYZE SELECT * FROM obra WHERE id_museu = 3;
+
+EXPLAIN ANALYZE SELECT * FROM usuario_museu WHERE id_usuario = 5;
+EXPLAIN ANALYZE SELECT * FROM usuario_genero WHERE id_usuario = 6;
+
+-- Após a criação dos índices
+EXPLAIN ANALYZE SELECT * FROM obra WHERE id_genero = 1;
+EXPLAIN ANALYZE SELECT * FROM obra WHERE id_artista = 2;
+EXPLAIN ANALYZE SELECT * FROM obra WHERE id_museu = 3;
+
+EXPLAIN ANALYZE SELECT * FROM usuario_museu WHERE id_usuario = 5;
+EXPLAIN ANALYZE SELECT * FROM usuario_genero WHERE id_usuario = 6;
+
+
+
 -- Drops Normais
-drop table artista cascade
-drop table artista_genero cascade
-drop table dia_funcionamento cascade
-drop table genero cascade
-drop table guia cascade
-drop table endereco_museu cascade
-drop table museu cascade
-drop table obra cascade
-drop table obra_guia cascade
-drop table usuario cascade
-drop table usuario_genero cascade
-drop table usuario_museu cascade
+-- drop table artista cascade
+-- drop table artista_genero cascade
+-- drop table dia_funcionamento cascade
+-- drop table genero cascade
+-- drop table guia cascade
+-- drop table endereco_museu cascade
+-- drop table museu cascade
+-- drop table museu_adm cascade
+-- drop table obra cascade
+-- drop table obra_guia cascade
+-- drop table usuario cascade
+-- drop table usuario_genero cascade
+-- drop table usuario_museu cascade
 
---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 -- Drops Tabelas de Log
-
 -- drop table log_usuario cascade
 -- drop table log_genero cascade
 -- drop table log_obra cascade
@@ -1286,6 +1580,38 @@ drop table usuario_museu cascade
 -- drop table log_usuario_genero cascade
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Excluir todas as informações das tabelas
+
+truncate table artista cascade;
+truncate table artista_genero cascade;
+truncate table dia_funcionamento cascade;
+truncate table genero cascade;
+truncate table guia cascade;
+truncate table endereco_museu cascade;
+truncate table museu cascade;
+truncate table museu_adm cascade;
+truncate table obra cascade;
+truncate table obra_guia cascade;
+truncate table usuario cascade;
+truncate table usuario_genero cascade;
+truncate table usuario_museu cascade;
+
+
+-- Excluir todas as informações das tabelas de log
+
+truncate log_usuario cascade;
+truncate log_genero cascade;
+truncate log_obra cascade;
+truncate log_museu cascade;
+truncate log_endereco cascade;
+truncate log_guia cascade;
+truncate log_artista cascade;
+truncate log_dia_funcionamento cascade;
+truncate log_usuario_museu cascade;
+truncate log_obra_guia cascade;
+truncate log_artista_genero cascade;
+truncate log_usuario_genero cascade;
+truncate table log_geral cascade;
 
 -- Selects Normais
 
@@ -1296,13 +1622,12 @@ select * from genero
 select * from guia
 select * from endereco_museu 
 select * from museu 
-select * from obra
+select * from museu_adm
+select * from obra 
 select * from obra_guia
 select * from usuario
 select * from usuario_genero
 select * from usuario_museu
-
---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Selects Tabelas de Log
 												
@@ -1311,7 +1636,7 @@ select * from log_genero
 select * from log_obra
 select * from log_museu
 select * from log_endereco
-select * from log_guia
+select * from log_guia 
 select * from log_artista
 select * from log_dia_funcionamento
 select * from log_usuario_museu
@@ -1320,17 +1645,5 @@ select * from log_artista_genero
 select * from log_usuario_genero
 select * from log_usuario_museu_acoes;
 select * from log_usuario_genero_acoes;
-select * from log_geral;
-
-
-INSERT INTO usuario (id, nm_usuario, sobrenome, email_usuario, nr_tel_usuario, dt_nasci_usuario, biografia, sexo, apelido, senha_usuario)
-VALUES 
-(1, 'Gabriel', 'Costa', 'gab.costa@email.com', '123456778', '2008-05-25', 'Apaixonado pela Sophie.', 'M', 'Gab', 'senha123')
-
- 
- 
- 
- 
-
-
+select * from log_geral
 
